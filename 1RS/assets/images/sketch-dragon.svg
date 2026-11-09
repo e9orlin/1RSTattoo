@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <rect width="500" height="500" fill="#ffffff"/>
+  <g stroke="#09090c" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Japanese Dragon Head & Mane -->
+    <path d="M 250,120 Q 220,160 200,210 Q 180,270 210,320 Q 240,370 290,390 Q 340,410 390,380 Q 430,350 420,300 Q 410,250 350,230 Q 290,210 280,160 Q 270,120 250,120" stroke="#000000" stroke-width="12" fill="none"/>
+    <path d="M 250,120 C 240,90 270,70 290,80 C 310,90 320,110 310,130 C 300,150 270,150 250,120 Z" fill="#111111" stroke="#000000" stroke-width="4"/>
+    <path d="M 280,85 C 310,50 340,40 370,50 C 360,70 340,85 315,95" stroke="#000000" stroke-width="5" fill="#222222"/>
+    <path d="M 260,95 C 280,65 305,60 325,70" stroke="#000000" stroke-width="4"/>
+    <!-- Snout & Teeth -->
+    <path d="M 230,110 L 200,125 L 180,120 L 160,135 L 200,145 L 220,135" stroke="#000000" stroke-width="4" fill="#151515"/>
+    <polygon points="180,125 185,135 190,125" fill="#ffffff"/>
+    <polygon points="195,127 200,138 205,127" fill="#ffffff"/>
+    <!-- Eye -->
+    <circle cx="245" cy="115" r="7" fill="#000000"/>
+    <circle cx="246" cy="113" r="2.5" fill="#ffffff"/>
+    <!-- Whiskers -->
+    <path d="M 170,130 C 120,140 100,200 80,240" stroke="#000000" stroke-width="3"/>
+    <path d="M 175,138 C 140,160 120,230 110,280" stroke="#000000" stroke-width="3"/>
+    <!-- Dragon spine & spikes -->
+    <path d="M 250,120 C 240,160 215,220 230,260 C 245,300 280,320 310,310 C 340,300 360,260 350,230" stroke="#000000" stroke-width="5" stroke-dasharray="8 6"/>
+    <path d="M 280,350 L 290,370 L 300,350 L 315,370 L 325,350 L 340,368" stroke="#000000" stroke-width="4" fill="#000000"/>
+    <!-- Clouds -->
+    <path d="M 350,170 C 400,150 440,180 430,220 C 420,260 380,260 370,290" stroke="#333333" stroke-width="2.5" stroke-dasharray="5 5"/>
+  </g>
+</svg>

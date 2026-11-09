@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 700" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgSkinShoulder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dfc4b0"/>
+      <stop offset="60%" stop-color="#cca991"/>
+      <stop offset="100%" stop-color="#b68f74"/>
+    </linearGradient>
+  </defs>
+  <rect width="500" height="700" fill="#141419"/>
+  <!-- Shoulder / Deltoid & Bicep curve -->
+  <path d="M 50,0 C 70,80 100,160 120,240 C 130,340 120,480 140,700 L 420,700 C 450,560 470,380 450,220 C 430,120 380,40 330,0 Z" 
+        fill="url(#bgSkinShoulder)"/>
+  <!-- Deltoid contour shadow -->
+  <path d="M 170,180 C 240,240 320,230 380,180" stroke="#754b32" stroke-width="24" fill="none" opacity="0.16" filter="blur(15px)"/>
+  <path d="M 150,300 C 190,440 210,560 220,700" stroke="#754b32" stroke-width="20" fill="none" opacity="0.18" filter="blur(12px)"/>
+  <text x="250" y="670" text-anchor="middle" fill="#ffffff" opacity="0.4" font-family="sans-serif" font-size="12" letter-spacing="3">ПЛЕЧО / БИЦЕПС // ДЕМО-ЗОНА</text>
+</svg>
