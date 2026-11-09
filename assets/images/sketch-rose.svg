@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <rect width="400" height="500" fill="#ffffff"/>
+  <g stroke="#09090c" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Rose Blossom (Neo-Traditional) -->
+    <path d="M 200,180 C 180,150 170,120 190,100 C 210,80 240,90 245,115 C 250,140 220,165 200,180 Z" fill="#151515" stroke="#000" stroke-width="3"/>
+    <path d="M 185,115 C 160,110 145,130 150,155 C 155,180 180,195 200,205" stroke="#000" stroke-width="3" fill="#1e1e1e"/>
+    <path d="M 240,115 C 265,115 275,135 270,160 C 265,185 235,200 200,205" stroke="#000" stroke-width="3" fill="#1e1e1e"/>
+    <path d="M 165,160 C 140,170 130,200 145,225 C 160,250 195,255 200,255" stroke="#000" stroke-width="3.5" fill="#252525"/>
+    <path d="M 255,160 C 280,170 290,200 275,225 C 260,250 215,255 200,255" stroke="#000" stroke-width="3.5" fill="#252525"/>
+    <path d="M 175,230 C 150,250 155,280 180,295 C 205,310 230,290 220,270" stroke="#000" stroke-width="3.5" fill="#181818"/>
+    <!-- Stem and Thorns -->
+    <path d="M 200,260 C 205,310 195,360 205,420 C 210,450 200,480 200,490" stroke="#000" stroke-width="5.5"/>
+    <path d="M 202,320 L 220,310 L 204,335" fill="#000"/>
+    <path d="M 198,370 L 180,360 L 196,385" fill="#000"/>
+    <path d="M 203,430 L 222,420 L 205,445" fill="#000"/>
+    <!-- Leaves -->
+    <path d="M 202,300 C 240,290 280,310 295,335 C 275,350 230,345 202,315 Z" fill="#202020" stroke="#000" stroke-width="3"/>
+    <path d="M 202,305 Q 250,320 290,335" stroke="#ffffff" stroke-width="1.5"/>
+    <path d="M 198,350 C 160,340 120,360 105,385 C 125,400 170,395 198,365 Z" fill="#202020" stroke="#000" stroke-width="3"/>
+    <path d="M 198,355 Q 150,370 110,385" stroke="#ffffff" stroke-width="1.5"/>
+  </g>
+</svg>

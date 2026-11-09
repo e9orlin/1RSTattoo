@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 550" width="450" height="550">
+  <rect width="450" height="550" fill="#ffffff"/>
+  <g stroke="#09090c" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="225" y1="20" x2="225" y2="530" stroke="#333333" stroke-width="1" stroke-dasharray="4 4"/>
+    <circle cx="225" cy="240" r="160" stroke="#333333" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <polygon points="225,50 390,335 60,335" stroke="#333333" stroke-width="1.5"/>
+    <polygon points="225,430 390,145 60,145" stroke="#333333" stroke-width="1.5"/>
+    <!-- Left Half: Realistic Lion -->
+    <path d="M 225,120 C 190,115 150,140 135,180 C 120,220 130,270 150,300 C 170,330 200,350 225,360" stroke="#000" stroke-width="4" fill="#151515"/>
+    <circle cx="190" cy="220" r="6" fill="#ffffff"/>
+    <path d="M 225,260 L 210,265 L 215,275 L 225,280" stroke="#ffffff" stroke-width="2" fill="#ffffff"/>
+    <path d="M 135,180 C 100,160 80,200 70,230 C 60,260 80,300 100,330" stroke="#000000" stroke-width="3"/>
+    <!-- Right Half: Sacred Geometry Facets -->
+    <polygon points="225,120 270,140 225,175" fill="#1a1a1a" stroke="#000" stroke-width="2"/>
+    <polygon points="270,140 315,180 275,200 225,175" fill="#222" stroke="#000" stroke-width="2"/>
+    <polygon points="315,180 340,240 290,250 275,200" fill="#151515" stroke="#000" stroke-width="2"/>
+    <polygon points="225,175 275,200 255,240 225,230" fill="#333" stroke="#000" stroke-width="2"/>
+    <polygon points="255,240 290,250 280,290 245,285" fill="#282828" stroke="#000" stroke-width="2"/>
+    <polygon points="225,230 255,240 245,285 225,280" fill="#1f1f1f" stroke="#000" stroke-width="2"/>
+    <polygon points="290,250 340,240 320,310 280,290" fill="#1a1a1a" stroke="#000" stroke-width="2"/>
+    <polygon points="280,290 320,310 290,360 250,330" fill="#252525" stroke="#000" stroke-width="2"/>
+    <polygon points="245,285 280,290 250,330 225,320" fill="#303030" stroke="#000" stroke-width="2"/>
+    <polygon points="225,320 250,330 225,360" fill="#181818" stroke="#000" stroke-width="2"/>
+    <polygon points="250,330 290,360 260,400 225,420" fill="#202020" stroke="#000" stroke-width="2"/>
+    <polygon points="250,215 270,210 265,225 248,223" fill="#ffffff" stroke="#000" stroke-width="1.5"/>
+    <circle cx="225" cy="460" r="5" fill="#000000"/>
+    <circle cx="225" cy="480" r="3.5" fill="#000000"/>
+    <circle cx="225" cy="495" r="2.5" fill="#000000"/>
+  </g>
+</svg>
