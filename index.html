@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>1RS Tattoo Studio — Премиальная тату студия | Авторские татуировки и онлайн-примерка</title>
-  <meta name="description" content="Премиальная студия авторской татуировки 1RS Tattoo Studio. Медицинская стерильность, лучшие мастера, индивидуальные эскизы и виртуальная онлайн-примерка тату на вашем теле.">
-  <link rel="icon" type="image/png" href="assets/images/logo-transparent.png">
+  <title>1RS Tattoo Studio — Премиальная тату студия в Новосибирске | Авторские татуировки и онлайн-примерка</title>
+  <meta name="description" content="Премиальная студия авторской татуировки 1RS Tattoo Studio в Новосибирске. Медицинская стерильность, лучшие мастера, индивидуальные эскизы и виртуальная онлайн-примерка тату на вашем теле.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
   <!-- Core Styles -->
   <link rel="stylesheet" href="assets/css/style.css">
@@ -23,10 +25,12 @@
     <div class="container nav-container">
       <!-- Clickable Logo returning to top -->
       <a href="#top" class="brand-logo" title="Наверх страницы">
-        <img src="assets/images/logo-transparent.png" alt="TATTOO STUDIO" onerror="this.src='logo.jpg'">
+        <img src="assets/images/logo-transparent.png" alt="1RS TATTOO STUDIO" onerror="this.src='logo.jpg'">
         <div class="brand-title">
           <span class="brand-name">TATTOO</span>
-          <span class="brand-sub">STUDIO</span>
+          <span class="brand-sub">
+            <span>S</span><span>T</span><span>U</span><span>D</span><span>I</span><span>O</span>
+          </span>
         </div>
       </a>
 
@@ -176,7 +180,7 @@
     <div class="container">
       <div class="section-tag">ФИЛОСОФИЯ И&nbsp;СТАНДАРТЫ 1RS</div>
       <h2 class="section-title">Искусство, которому <span class="title-accent">доверяют более 15 лет</span></h2>
-      <p class="section-desc">Крупнейшее творческое объединение в Горном Алтае: более 8 800 подписчиков во ВКонтакте, свыше 42 000 реализованных проектов и хирургическая стерильность по стандарту СанПиН.</p>
+      <p class="section-desc">Премиальная студия авторской татуировки в Новосибирске: более 8 800 подписчиков во ВКонтакте, свыше 42 000 реализованных проектов и хирургическая стерильность по стандарту СанПиН.</p>
 
       <div class="standards-grid">
         <div class="glass-panel standard-card">
@@ -340,10 +344,10 @@
         </div>
 
         <div class="portfolio-item" data-category="Графика">
-          <img src="assets/images/portfolio/portfolio-2.jpg" alt="Пейзажи Алтая • Автор Карина">
+          <img src="assets/images/portfolio/portfolio-2.jpg" alt="Горные вершины • Автор Карина">
           <div class="portfolio-item-overlay">
             <span class="portfolio-tag">Карина • Графика</span>
-            <h4 class="portfolio-title">Горный Алтай & Дракон</h4>
+            <h4 class="portfolio-title">Горные вершины & Дракон</h4>
           </div>
           <div class="portfolio-view-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/></svg>
@@ -616,17 +620,23 @@
             </div>
           </div>
 
-          <!-- Viewport Floating Quick Tools -->
-          <div class="viewport-floating-bar">
-            <button class="floating-tool-btn" id="btn-toggle-handles" title="Скрыть / Показать рамку управления">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <!-- Viewport Floating Quick Tools (Appears only when sketch is active) -->
+          <div class="viewport-floating-bar" id="viewport-floating-bar" style="display: none;">
+            <button class="floating-tool-btn" id="btn-zoom-out" title="Уменьшить эскиз">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
             </button>
-            <button class="floating-tool-btn" id="btn-reset-transform-view" title="Сбросить масштаб и положение">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <button class="floating-tool-btn" id="btn-zoom-in" title="Увеличить эскиз">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
             </button>
-            <span style="font-size: 0.75rem; color: var(--text-dim); border-left: 1px solid var(--border-glass); padding-left: 10px;">
-              Боковые точки растягивают ширину, верх/низ — высоту
-            </span>
+            <button class="floating-tool-btn" id="btn-rotate-90" title="Повернуть на 90°">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            </button>
+            <button class="floating-tool-btn" id="btn-toggle-handles" title="Показать / скрыть рамку">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="floating-tool-btn" id="btn-reset-transform-view" title="Сбросить размер и положение">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
           </div>
         </div>
       </div>
@@ -942,7 +952,7 @@
               </div>
               <div class="contact-detail-text">
                 <h4>Адрес студии</h4>
-                <p>Республика Алтай, с. Майма, Лесной переулок, 18 (цокольный этаж)</p>
+                <p>г. Новосибирск (пространство 1RS, по предварительной записи)</p>
               </div>
             </div>
 
@@ -973,19 +983,19 @@
               </div>
               <div class="map-links-grid">
                 <!-- 2GIS Direct -->
-                <a href="https://2gis.ru/gornoaltaysk/search/%D0%A2%D0%B0%D1%82%D1%83%20%D1%81%D0%B0%D0%BB%D0%BE%D0%BD%20%D0%B2%20%D0%B3%D0%BE%D1%80%D0%BD%D0%BE%20%D0%B0%D0%BB%D1%82%D0%B0%D0%B9%D1%81%D0%BA/firm/70000001044280020/85.895324%2C51.995518/tab/reviews?relief=on" target="_blank" class="map-link-card" title="Открыть 1RS в 2GIS (рейтинг 5.0 ★)">
+                <a href="https://2gis.ru/novosibirsk/search/1RS%20тату" target="_blank" class="map-link-card" title="Открыть 1RS в 2GIS">
                   <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                  <span>2GIS ★ 5.0</span>
+                  <span>2GIS</span>
                 </a>
                 <!-- Yandex Maps -->
-                <a href="https://yandex.ru/maps/?text=1RS%20тату%20Майма%20Лесной%20переулок%2018" target="_blank" class="map-link-card" title="Мы на Яндекс Картах">
+                <a href="https://yandex.ru/maps/?text=1RS%20тату%20Новосибирск" target="_blank" class="map-link-card" title="Мы на Яндекс Картах">
                   <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                   <span>Яндекс Карты</span>
                 </a>
-                <!-- Avito -->
-                <a href="https://avito.ru" target="_blank" class="map-link-card" title="Профиль студии на Авито">
-                  <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
-                  <span>Авито</span>
+                <!-- Telegram -->
+                <a href="https://t.me/tattoo1rs" target="_blank" class="map-link-card" title="Наш Telegram канал">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                  <span>Telegram</span>
                 </a>
               </div>
             </div>
@@ -994,7 +1004,7 @@
             <div style="margin-top: 4px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); position: relative;">
               <img src="assets/images/studio/studio-interior.jpg" alt="Интерьер студии 1RS" style="width: 100%; height: 160px; object-fit: cover; display: block;">
               <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent); padding: 8px 12px; font-size: 0.75rem; color: var(--accent-gold); font-weight: 600;">
-                Пространство 1RS • Майма, Лесной переулок, 18
+                Пространство 1RS • Новосибирск
               </div>
             </div>
           </div>
@@ -1050,10 +1060,12 @@
       <div class="footer-top">
         <!-- Logo -->
         <a href="#top" class="brand-logo" title="Вернуться в начало">
-          <img src="assets/images/logo-transparent.png" alt="TATTOO STUDIO" onerror="this.src='logo.jpg'">
+          <img src="assets/images/logo-transparent.png" alt="1RS TATTOO STUDIO" onerror="this.src='logo.jpg'">
           <div class="brand-title">
             <span class="brand-name">TATTOO</span>
-            <span class="brand-sub">STUDIO</span>
+            <span class="brand-sub">
+              <span>S</span><span>T</span><span>U</span><span>D</span><span>I</span><span>O</span>
+            </span>
           </div>
         </a>
 

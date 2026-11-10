@@ -38,6 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
         link.classList.add('active');
       }
     });
+
+    // Auto-hide floating dock when inside tryon section so it never covers try-on controls on mobile
+    const floatingDock = document.querySelector('.floating-quick-dock');
+    if (floatingDock) {
+      if (currentSectionId === 'tryon') {
+        floatingDock.style.opacity = '0';
+        floatingDock.style.pointerEvents = 'none';
+        floatingDock.style.transform = window.innerWidth <= 768 ? 'translate(-50%, 20px)' : 'translateY(20px)';
+      } else {
+        floatingDock.style.opacity = '1';
+        floatingDock.style.pointerEvents = 'auto';
+        floatingDock.style.transform = window.innerWidth <= 768 ? 'translateX(-50%)' : 'none';
+      }
+    }
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });

@@ -82,8 +82,8 @@ body {
 .static-ambient-glow {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: 
     radial-gradient(ellipse 900px 520px at 50% 0%, rgba(198, 160, 82, 0.07) 0%, transparent 70%),
     radial-gradient(circle 800px at 85% 40%, rgba(198, 160, 82, 0.035) 0%, transparent 65%),
@@ -257,7 +257,7 @@ section {
 }
 
 .brand-title {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   justify-content: center;
   line-height: 1.1;
@@ -265,23 +265,29 @@ section {
 }
 
 .brand-name {
-  font-size: 0.95rem;
+  font-size: 1.18rem;
   font-weight: 900;
-  letter-spacing: 3.8px;
+  letter-spacing: 2.4px;
   color: #ffffff;
-  line-height: 1.15;
+  line-height: 1.05;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .brand-sub {
-  font-size: 0.95rem;
-  font-weight: 900;
-  letter-spacing: 3.8px;
+  font-size: 0.68rem;
+  font-weight: 800;
   text-transform: uppercase;
   color: var(--accent-gold); /* Warm orange-gold */
-  line-height: 1.15;
-  white-space: nowrap;
+  line-height: 1.05;
+  margin-top: 2px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.brand-sub span {
+  display: inline-block;
 }
 
 /* Nav Menu */
@@ -610,19 +616,25 @@ section {
   pointer-events: none;
 }
 
-/* Hero Content Grid */
+/* Hero Content Layout - Perfectly Centered and Symmetrical Across All Screens */
 .hero-grid {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 40px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
   position: relative;
   z-index: 3;
 }
 
 .hero-content {
   position: relative;
-  max-width: 680px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .hero-pill {
@@ -638,9 +650,9 @@ section {
   font-weight: 700;
   letter-spacing: 1.8px;
   text-transform: uppercase;
-  margin-bottom: 24px;
+  margin: 0 auto 24px;
   backdrop-filter: blur(12px);
-  white-space: nowrap;
+  max-width: 100%;
 }
 
 .hero-pill-dot {
@@ -658,12 +670,14 @@ section {
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 5.2vw, 4.4rem);
+  font-size: clamp(2.3rem, 5.5vw, 4.2rem);
   font-weight: 900;
-  line-height: 1.08;
-  letter-spacing: -1px;
-  margin-bottom: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.8px;
+  margin: 0 auto 20px;
   color: #fff;
+  text-align: center;
+  max-width: 860px;
 }
 
 .hero-title-highlight {
@@ -673,18 +687,22 @@ section {
 }
 
 .hero-subtitle {
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   color: var(--text-muted);
   line-height: 1.7;
-  margin-bottom: 36px;
-  max-width: 580px;
+  margin: 0 auto 36px;
+  max-width: 680px;
+  text-align: center;
 }
 
 .hero-buttons {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
-  margin-bottom: 48px;
+  margin: 0 auto 48px;
+  width: 100%;
+  max-width: 600px;
 }
 
 .hero-stats {
@@ -693,6 +711,9 @@ section {
   gap: 20px;
   padding-top: 30px;
   border-top: 1px solid var(--border-glass);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .hero-stat-item {
@@ -1504,38 +1525,50 @@ section {
 
 /* Viewport floating toolbar */
 .viewport-floating-bar {
+  display: none; /* Activated via JS only when sketch is active */
   position: absolute;
-  bottom: 16px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(10, 10, 14, 0.92);
+  background: rgba(12, 12, 16, 0.94);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--border-steel);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
-  padding: 6px 16px;
-  display: flex;
+  padding: 5px 10px;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   z-index: 30;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75);
+  pointer-events: auto;
 }
 
 .floating-tool-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   cursor: pointer;
-  padding: 6px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
-.floating-tool-btn:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
+.floating-tool-btn:hover,
+.floating-tool-btn:active {
+  background: var(--accent-gold);
+  color: #000000;
+  border-color: var(--accent-gold);
+  transform: scale(1.08);
+}
+
+.floating-tool-btn.active {
+  background: var(--accent-gold);
+  color: #000000;
 }
 
 /* ==========================================================================
@@ -2212,6 +2245,7 @@ section {
   z-index: 999;
   display: flex;
   gap: 10px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .dock-pill {
@@ -2412,6 +2446,7 @@ section {
     width: calc(100% - 32px);
     max-width: 380px;
     justify-content: center;
+    transition: opacity 0.3s ease, transform 0.3s ease;
   }
 
   .floating-quick-dock .open-mobile-sim-btn {

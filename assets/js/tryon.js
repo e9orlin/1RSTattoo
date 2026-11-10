@@ -47,6 +47,9 @@
 
   const btnToggleHandles = document.getElementById('btn-toggle-handles');
   const btnResetTransform = document.getElementById('btn-reset-transform-view');
+  const btnZoomIn = document.getElementById('btn-zoom-in');
+  const btnZoomOut = document.getElementById('btn-zoom-out');
+  const btnRotate90 = document.getElementById('btn-rotate-90');
   const btnDownloadResult = document.getElementById('btn-download-tryon');
   const btnSendTelegram = document.getElementById('btn-send-tryon-tg');
 
@@ -169,9 +172,35 @@
   }
 
   // =========================================================================
+  // BOUNDARY CLAMPING: Keeps handles and controls ALWAYS visible on-screen
+  // =========================================================================
+  function clampBounds() {
+    const container = canvasContainer || document.getElementById('tryon-canvas-container');
+    const cW = container ? container.clientWidth : 360;
+    const cH = container ? container.clientHeight : 500;
+
+    // Maximum allowed dimensions so handles and stems never get clipped outside the screen
+    const maxW = Math.max(100, Math.floor(cW - 36));
+    const maxH = Math.max(100, Math.floor(cH - 54));
+
+    state.width = Math.max(60, Math.min(maxW, state.width));
+    state.height = Math.max(60, Math.min(maxH, state.height));
+
+    // Center bounds: keeps handles at least 16px inside canvas borders
+    const maxX = Math.max(0, Math.floor((cW / 2) - (state.width / 2) - 16));
+    const maxY = Math.max(0, Math.floor((cH / 2) - (state.height / 2) - 16));
+    // Rotation stem extends upwards, so minY leaves at least 48px headroom
+    const minY = Math.min(0, Math.floor(-(cH / 2) + (state.height / 2) + 48));
+
+    state.x = Math.max(-maxX, Math.min(maxX, state.x));
+    state.y = Math.max(minY, Math.min(maxY, state.y));
+  }
+
+  // =========================================================================
   // SYNCHRONIZED TRANSFORM FOR BOTH LAYERS
   // =========================================================================
   function applyTransform() {
+    clampBounds();
     const transformStr = `translate(-50%, -50%) translate3d(${state.x}px, ${state.y}px, 0) rotate(${state.rotation}deg)`;
 
     // Layer 1: Tattoo Render Layer (Blends directly with bodyBg)
@@ -196,11 +225,16 @@
   }
 
   function initPosition() {
+    const container = canvasContainer || document.getElementById('tryon-canvas-container');
+    const cW = container ? container.clientWidth : 360;
+
+    // Proportionate initial size tailored to current screen width
+    state.width = Math.min(220, Math.max(140, Math.round(cW * 0.55)));
+    state.height = Math.round(state.width * 1.3);
     state.x = 0;
     state.y = 0;
-    state.width = 220;
-    state.height = 290;
     state.rotation = 0;
+    clampBounds();
     applyTransform();
   }
 
@@ -208,12 +242,15 @@
   // VIEWPORT STAGE VISIBILITY CONTROLLER
   // =========================================================================
   function updateViewportVisibility() {
+    const floatingBar = document.getElementById('viewport-floating-bar');
+
     if (!state.hasBody) {
       if (bodyBg) bodyBg.style.display = 'none';
       if (emptyState) emptyState.style.display = 'flex';
       if (sketchPromptBanner) sketchPromptBanner.style.display = 'none';
       if (tattooLayer) tattooLayer.style.display = 'none';
       if (controlsLayer) controlsLayer.style.display = 'none';
+      if (floatingBar) floatingBar.style.display = 'none';
 
       if (bodyStatusBadge) bodyStatusBadge.style.display = 'none';
       if (dropzoneBody) dropzoneBody.style.display = 'block';
@@ -227,10 +264,12 @@
         if (sketchPromptBanner) sketchPromptBanner.style.display = 'flex';
         if (tattooLayer) tattooLayer.style.display = 'none';
         if (controlsLayer) controlsLayer.style.display = 'none';
+        if (floatingBar) floatingBar.style.display = 'none';
       } else {
         if (sketchPromptBanner) sketchPromptBanner.style.display = 'none';
         if (tattooLayer) tattooLayer.style.display = 'block';
         if (controlsLayer) controlsLayer.style.display = 'block';
+        if (floatingBar) floatingBar.style.display = 'flex';
         applyTransform();
       }
     }
@@ -547,6 +586,29 @@
       applyTransform();
     });
   });
+
+  if (btnZoomIn) {
+    btnZoomIn.addEventListener('click', () => {
+      state.width = Math.round(state.width * 1.15);
+      state.height = Math.round(state.height * 1.15);
+      applyTransform();
+    });
+  }
+
+  if (btnZoomOut) {
+    btnZoomOut.addEventListener('click', () => {
+      state.width = Math.round(state.width * 0.85);
+      state.height = Math.round(state.height * 0.85);
+      applyTransform();
+    });
+  }
+
+  if (btnRotate90) {
+    btnRotate90.addEventListener('click', () => {
+      state.rotation = (state.rotation + 90) % 360;
+      applyTransform();
+    });
+  }
 
   if (btnToggleHandles) {
     btnToggleHandles.addEventListener('click', () => {
