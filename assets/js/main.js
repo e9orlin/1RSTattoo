@@ -39,17 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Auto-hide floating dock when inside tryon section so it never covers try-on controls on mobile
+    // Floating Dock visibility:
+    // 1. Hidden on Hero section (top 260px) so it NEVER covers the main CTA buttons on mobile!
+    // 2. Hidden in Try-on section so it NEVER covers camera/upload buttons or handles!
+    // 3. Visible everywhere else (About, Masters, Portfolio, Calculator, FAQ, Contact)
     const floatingDock = document.querySelector('.floating-quick-dock');
     if (floatingDock) {
-      if (currentSectionId === 'tryon') {
-        floatingDock.style.opacity = '0';
-        floatingDock.style.pointerEvents = 'none';
-        floatingDock.style.transform = window.innerWidth <= 768 ? 'translate(-50%, 20px)' : 'translateY(20px)';
+      if (scrollY < 260 || currentSectionId === 'tryon') {
+        floatingDock.classList.add('dock-hidden');
       } else {
-        floatingDock.style.opacity = '1';
-        floatingDock.style.pointerEvents = 'auto';
-        floatingDock.style.transform = window.innerWidth <= 768 ? 'translateX(-50%)' : 'none';
+        floatingDock.classList.remove('dock-hidden');
       }
     }
   }

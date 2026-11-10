@@ -59,7 +59,11 @@ html {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  width: 100%;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -68,9 +72,18 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-main);
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  width: 100%;
   position: relative;
   min-height: 100vh;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Custom Cursor Visual Disabled */
@@ -2105,10 +2118,10 @@ section {
 
 /* iPhone Chassis Mockup */
 .mobile-sim-device {
-  width: 393px;
-  height: 780px;
+  width: min(393px, calc(100vw - 24px));
+  height: min(780px, calc(100vh - 120px));
   background: #111116;
-  border-radius: 50px;
+  border-radius: 46px;
   border: 4px solid #3c3c46;
   box-shadow: 
     0 0 0 4px #1a1a20,
@@ -2245,7 +2258,14 @@ section {
   z-index: 999;
   display: flex;
   gap: 10px;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s ease;
+}
+
+.floating-quick-dock.dock-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(30px);
 }
 
 .dock-pill {
@@ -2275,6 +2295,31 @@ section {
 /* ==========================================================================
    RESPONSIVE MEDIA QUERIES (Pixel-Perfect Tablet & Mobile Adaptation)
    ========================================================================== */
+
+/* Responsive Navigation Breakpoint: cleanly switch to drawer menu at <= 1180px */
+@media (max-width: 1320px) {
+  .nav-menu {
+    gap: 14px;
+  }
+  .nav-link {
+    font-size: 0.86rem;
+  }
+  .nav-actions {
+    margin-left: 16px;
+    padding-left: 14px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .nav-menu, .nav-actions {
+    display: none !important;
+  }
+  .mobile-toggle {
+    display: block !important;
+  }
+}
+
 @media (max-width: 1024px) {
   .hero-grid {
     grid-template-columns: 1fr;
@@ -2319,7 +2364,7 @@ section {
   }
   
   .hero-section {
-    padding: 120px 0 60px;
+    padding: 85px 0 36px;
     min-height: auto;
   }
 
@@ -2327,30 +2372,64 @@ section {
     object-position: 55% center;
     opacity: 0.75;
   }
+
+  .hero-pill {
+    padding: 5px 14px;
+    font-size: 0.72rem;
+    letter-spacing: 1.2px;
+    margin: 0 auto 14px;
+  }
   
   .hero-title {
-    font-size: clamp(2rem, 7.5vw, 2.7rem);
+    font-size: clamp(1.85rem, 6.8vw, 2.35rem);
     line-height: 1.15;
+    margin: 0 auto 12px;
+    letter-spacing: -0.5px;
+  }
+
+  .hero-subtitle {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0 auto 20px;
+    max-width: 92%;
   }
 
   .hero-buttons {
     flex-direction: column;
     width: 100%;
+    max-width: 320px;
+    margin: 0 auto 22px;
+    gap: 10px;
   }
 
   .hero-buttons .btn {
     width: 100%;
     justify-content: center;
+    padding: 12px 18px;
+    font-size: 0.88rem;
   }
   
   .hero-stats {
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    margin-top: 36px;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 18px;
+    max-width: 340px;
   }
 
   .hero-stat-item {
-    padding: 14px 12px;
+    padding: 8px 10px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .stat-value {
+    font-size: 1.55rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.8px;
   }
   
   /* Horizontally Swipeable Portfolio Filters with Hidden Scrollbar */
@@ -2440,13 +2519,18 @@ section {
 
   /* Sleek Floating Dock for Mobile */
   .floating-quick-dock {
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 16px;
-    width: calc(100% - 32px);
+    left: 16px;
+    right: 16px;
+    margin: 0 auto;
+    bottom: 14px;
+    width: auto;
     max-width: 380px;
     justify-content: center;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s ease;
+  }
+
+  .floating-quick-dock.dock-hidden {
+    transform: translateY(30px);
   }
 
   .floating-quick-dock .open-mobile-sim-btn {
