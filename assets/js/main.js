@@ -2,11 +2,23 @@
 
 
 
+
+
+
+
  * 1RS Tattoo Studio — Main UI Logic
 
 
 
+
+
+
+
  * Sticky header, ScrollSpy, Scroll Reveal, Hero Stats Animation, Lightbox, FAQ, Booking Form
+
+
+
+
 
 
 
@@ -18,11 +30,27 @@
 
 
 
+
+
+
+
+
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -30,7 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -38,7 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   const navLinks = document.querySelectorAll('.nav-menu .nav-link');
+
+
+
+
 
 
 
@@ -50,7 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   function onScroll() {
+
+
+
+
 
 
 
@@ -62,7 +118,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
     // Header blur & padding transition
+
+
+
+
 
 
 
@@ -70,7 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       header.classList.add('scrolled');
+
+
+
+
 
 
 
@@ -78,11 +154,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       header.classList.remove('scrolled');
 
 
 
+
+
+
+
     }
+
+
+
+
+
+
+
+
 
 
 
@@ -94,7 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     let currentSectionId = '';
+
+
+
+
 
 
 
@@ -102,7 +202,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       const top = section.offsetTop - 120;
+
+
+
+
 
 
 
@@ -110,7 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (scrollY >= top && scrollY < top + height) {
+
+
+
+
 
 
 
@@ -118,11 +234,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       }
 
 
 
+
+
+
+
     });
+
+
+
+
+
+
+
+
 
 
 
@@ -134,7 +266,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       link.classList.remove('active');
+
+
+
+
 
 
 
@@ -142,7 +282,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (href === `#${currentSectionId}`) {
+
+
+
+
 
 
 
@@ -150,11 +298,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       }
 
 
 
+
+
+
+
     });
+
+
+
+
+
+
+
+
 
 
 
@@ -166,7 +330,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     // 1. Hidden on Hero section (top 260px) so it NEVER covers the main CTA buttons on mobile!
+
+
+
+
 
 
 
@@ -174,30 +346,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     // 3. Visible everywhere else (About, Masters, Portfolio, Calculator, FAQ, Contact)
 
 
 
+
+
+
+
     const floatingDock = document.querySelector('.floating-quick-dock');
+
     if (floatingDock) {
+
       const heroSection = document.querySelector('.hero-section');
+
       const tryonSection = document.getElementById('tryon');
+
       const inHero = heroSection ? (heroSection.getBoundingClientRect().bottom > 140) : (scrollY < 500);
+
       const inTryon = tryonSection ? (
+
         tryonSection.getBoundingClientRect().top < window.innerHeight &&
+
         tryonSection.getBoundingClientRect().bottom > 80
+
       ) : false;
 
+
+
       if (inHero || inTryon) {
+
         floatingDock.classList.add('dock-hidden');
+
       } else {
+
         floatingDock.classList.remove('dock-hidden');
+
       }
+
     }
 
 
 
+
+
+
+
   }
+
+
+
+
+
+
+
+
 
 
 
@@ -209,6 +416,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   onScroll();
 
 
@@ -217,7 +428,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -225,7 +448,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -233,7 +464,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   const mobileDrawer = document.querySelector('.mobile-drawer');
+
+
+
+
 
 
 
@@ -245,7 +484,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   if (mobileToggle && mobileDrawer) {
+
+
+
+
 
 
 
@@ -253,7 +504,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       const isOpen = mobileDrawer.classList.contains('open');
+
+
+
+
 
 
 
@@ -261,7 +520,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       mobileDrawer.classList.toggle('open', !isOpen);
+
+
+
+
 
 
 
@@ -269,7 +536,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     });
+
+
+
+
+
+
+
+
 
 
 
@@ -281,7 +560,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       link.addEventListener('click', () => {
+
+
+
+
 
 
 
@@ -289,7 +576,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         mobileDrawer.classList.remove('open');
+
+
+
+
 
 
 
@@ -297,7 +592,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       });
+
+
+
+
 
 
 
@@ -305,7 +608,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   }
+
+
+
+
+
+
+
+
 
 
 
@@ -317,7 +632,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   const brandLogos = document.querySelectorAll('.brand-logo');
+
+
+
+
 
 
 
@@ -325,7 +648,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     logo.addEventListener('click', (e) => {
+
+
+
+
 
 
 
@@ -333,11 +664,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
 
 
+
+
+
+
     });
+
+
+
+
 
 
 
@@ -349,7 +692,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -357,7 +712,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -365,7 +728,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     '.reveal, .standard-card, .master-card, .review-card, .calc-step-box, .calc-result-box, .contact-detail-item, .faq-item'
+
+
+
+
 
 
 
@@ -377,7 +748,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   if ('IntersectionObserver' in window) {
+
+
+
+
 
 
 
@@ -385,7 +768,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       entries.forEach(entry => {
+
+
+
+
 
 
 
@@ -393,7 +784,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
           entry.target.classList.add('in-view');
+
+
+
+
 
 
 
@@ -401,7 +800,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         }
+
+
+
+
 
 
 
@@ -409,19 +816,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     }, {
 
 
 
-      rootMargin: '0px 0px -40px 0px',
 
 
 
-      threshold: 0.08
+
+      rootMargin: '120px 0px 80px 0px',
+
+
+
+
+
+
+
+      threshold: 0.01
+
+
+
+
 
 
 
     });
+
+
+
+
+
+
+
+
 
 
 
@@ -433,7 +864,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       el.classList.add('reveal');
+
+
+
+
 
 
 
@@ -441,7 +880,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (index % 4 === 1) el.classList.add('reveal-delay-1');
+
+
+
+
 
 
 
@@ -449,15 +896,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (index % 4 === 3) el.classList.add('reveal-delay-3');
+
+
+
+
 
 
 
       revealObserver.observe(el);
 
-
-
     });
+
+
+
+    // Safety fallback: ensure all content becomes visible
+
+    setTimeout(() => {
+
+      revealElements.forEach(el => el.classList.add('in-view'));
+
+    }, 1200);
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -465,11 +939,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     // Fallback for older browsers
 
 
 
+
+
+
+
     revealElements.forEach(el => el.classList.add('in-view'));
+
+
+
+
 
 
 
@@ -481,7 +967,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -489,11 +987,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
 
 
 
+
+
+
+
   const statItems = document.querySelectorAll('.hero-stat-item .stat-value');
+
+
+
+
 
 
 
@@ -505,11 +1015,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   function animateStats() {
 
 
 
+
+
+
+
     if (statsAnimated) return;
+
+
+
+
 
 
 
@@ -521,7 +1047,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
     statItems.forEach(item => {
+
+
+
+
 
 
 
@@ -529,7 +1067,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       const match = text.match(/([\d\.]+)/);
+
+
+
+
 
 
 
@@ -541,7 +1087,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
       const targetNum = parseFloat(match[1]);
+
+
+
+
 
 
 
@@ -549,11 +1107,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       const isFloat = match[1].includes('.');
 
 
 
+
+
+
+
       const startTime = performance.now();
+
+
+
+
 
 
 
@@ -565,7 +1135,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
       function updateCounter(currentTime) {
+
+
+
+
 
 
 
@@ -573,7 +1155,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         const progress = Math.min(elapsed / duration, 1);
+
+
+
+
 
 
 
@@ -581,7 +1171,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         const ease = 1 - Math.pow(1 - progress, 3);
+
+
+
+
 
 
 
@@ -593,7 +1191,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
         const formatted = isFloat ? currentVal.toFixed(1) : Math.floor(currentVal);
+
+
+
+
 
 
 
@@ -605,7 +1215,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
         if (progress < 1) {
+
+
+
+
 
 
 
@@ -613,7 +1235,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         } else {
+
+
+
+
 
 
 
@@ -621,7 +1251,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
           item.innerHTML = `${finalVal}<span>${suffix}</span>`;
+
+
+
+
 
 
 
@@ -629,7 +1267,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       }
+
+
+
+
+
+
+
+
 
 
 
@@ -641,11 +1291,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     });
 
 
 
+
+
+
+
   }
+
+
+
+
+
+
+
+
 
 
 
@@ -657,6 +1323,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   setTimeout(animateStats, 300);
 
 
@@ -665,7 +1335,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -673,11 +1355,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
 
 
 
+
+
+
+
   const filterBtns = document.querySelectorAll('.filter-btn');
+
+
+
+
 
 
 
@@ -689,7 +1383,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   filterBtns.forEach(btn => {
+
+
+
+
 
 
 
@@ -697,7 +1403,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       filterBtns.forEach(b => b.classList.remove('active'));
+
+
+
+
 
 
 
@@ -709,7 +1423,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
       const filter = btn.getAttribute('data-filter');
+
+
+
+
 
 
 
@@ -717,7 +1443,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         const cat = item.getAttribute('data-category');
+
+
+
+
 
 
 
@@ -725,7 +1459,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
           item.style.display = 'block';
+
+
+
+
 
 
 
@@ -733,7 +1475,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         } else {
+
+
+
+
 
 
 
@@ -741,7 +1491,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         }
+
+
+
+
 
 
 
@@ -749,7 +1507,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     });
+
+
+
+
 
 
 
@@ -761,7 +1527,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -769,7 +1547,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -777,11 +1563,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   const lightboxImg = document.getElementById('lightbox-img');
 
 
 
+
+
+
+
   const lightboxCaption = document.getElementById('lightbox-caption');
+
+
+
+
 
 
 
@@ -793,7 +1591,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   portfolioItems.forEach(item => {
+
+
+
+
 
 
 
@@ -801,11 +1611,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       const img = item.querySelector('img');
 
 
 
+
+
+
+
       const title = item.querySelector('.portfolio-title')?.textContent || 'Татуировка 1RS';
+
+
+
+
 
 
 
@@ -817,7 +1639,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
       if (lightboxModal && lightboxImg && img) {
+
+
+
+
 
 
 
@@ -825,7 +1659,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         if (lightboxCaption) {
+
+
+
+
 
 
 
@@ -833,7 +1675,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         }
+
+
+
+
 
 
 
@@ -841,11 +1691,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       }
 
 
 
+
+
+
+
     });
+
+
+
+
 
 
 
@@ -857,7 +1719,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -865,11 +1739,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
 
 
 
+
+
+
+
   const bookingModal = document.getElementById('booking-modal');
+
+
+
+
 
 
 
@@ -881,7 +1767,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   openBookingBtns.forEach(btn => {
+
+
+
+
 
 
 
@@ -889,7 +1787,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       e.preventDefault();
+
+
+
+
 
 
 
@@ -897,7 +1803,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (masterName) {
+
+
+
+
 
 
 
@@ -905,7 +1819,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         if (masterSelect) masterSelect.value = masterName;
+
+
+
+
 
 
 
@@ -913,7 +1835,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (bookingModal) bookingModal.classList.add('open');
+
+
+
+
 
 
 
@@ -921,7 +1851,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   });
+
+
+
+
+
+
+
+
 
 
 
@@ -933,7 +1875,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   modalCloseBtns.forEach(btn => {
+
+
+
+
 
 
 
@@ -941,7 +1891,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (lightboxModal) lightboxModal.classList.remove('open');
+
+
+
+
 
 
 
@@ -949,11 +1907,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     });
 
 
 
+
+
+
+
   });
+
+
+
+
+
+
+
+
 
 
 
@@ -965,7 +1939,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     modal.addEventListener('click', (e) => {
+
+
+
+
 
 
 
@@ -973,7 +1955,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         modal.classList.remove('open');
+
+
+
+
 
 
 
@@ -981,11 +1971,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     });
 
 
 
+
+
+
+
   });
+
+
+
+
+
+
+
+
 
 
 
@@ -997,7 +2003,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   window.addEventListener('keydown', (e) => {
+
+
+
+
 
 
 
@@ -1005,7 +2019,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       if (lightboxModal) lightboxModal.classList.remove('open');
+
+
+
+
 
 
 
@@ -1013,7 +2035,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       const mobileSimModal = document.getElementById('mobile-sim-modal');
+
+
+
+
 
 
 
@@ -1021,7 +2051,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         mobileSimModal.classList.remove('open');
+
+
+
+
 
 
 
@@ -1029,11 +2067,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       }
 
 
 
+
+
+
+
     }
+
+
+
+
 
 
 
@@ -1045,7 +2095,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -1053,7 +2115,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -1061,7 +2131,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   faqItems.forEach(item => {
+
+
+
+
 
 
 
@@ -1069,7 +2147,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     header.addEventListener('click', () => {
+
+
+
+
 
 
 
@@ -1077,7 +2163,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       faqItems.forEach(i => i.classList.remove('active'));
+
+
+
+
 
 
 
@@ -1085,7 +2179,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     });
+
+
+
+
 
 
 
@@ -1097,7 +2199,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -1105,7 +2219,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -1113,7 +2235,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   // =========================================================================
+
+
+
+
 
 
 
@@ -1121,7 +2251,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     let toast = document.querySelector('.toast-notice');
+
+
+
+
 
 
 
@@ -1129,7 +2267,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       toast = document.createElement('div');
+
+
+
+
 
 
 
@@ -1137,7 +2283,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       document.body.appendChild(toast);
+
+
+
+
 
 
 
@@ -1145,7 +2299,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     toast.innerHTML = `<span style="color:var(--accent-gold)">✓</span> ${message}`;
+
+
+
+
 
 
 
@@ -1153,7 +2315,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     setTimeout(() => {
+
+
+
+
 
 
 
@@ -1161,7 +2331,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     }, 4500);
+
+
+
+
 
 
 
@@ -1173,7 +2351,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
   const bookingForms = document.querySelectorAll('form.booking-form, form#modal-booking-form, form#contact-booking-form');
+
+
+
+
 
 
 
@@ -1181,7 +2371,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
     form.addEventListener('submit', (e) => {
+
+
+
+
 
 
 
@@ -1189,11 +2387,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       const nameInput = form.querySelector('input[name="name"]');
 
 
 
+
+
+
+
       const phoneInput = form.querySelector('input[name="phone"]');
+
+
+
+
 
 
 
@@ -1205,11 +2415,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
       const name = nameInput ? nameInput.value.trim() : 'Гость';
 
 
 
+
+
+
+
       const phone = phoneInput ? phoneInput.value.trim() : '';
+
+
+
+
 
 
 
@@ -1221,11 +2447,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
       showToast(`Спасибо, ${name}! Заявка принята. Администратор свяжется с вами в течение 10 минут.`);
 
 
 
+
+
+
+
       if (bookingModal) bookingModal.classList.remove('open');
+
+
+
+
 
 
 
@@ -1237,7 +2479,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
+
       setTimeout(() => {
+
+
+
+
 
 
 
@@ -1245,7 +2499,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
         if (confirmTg) {
+
+
+
+
 
 
 
@@ -1253,7 +2515,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
           window.open(`https://t.me/tattoo1rs?text=${text}`, '_blank');
+
+
+
+
 
 
 
@@ -1261,7 +2531,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
       }, 900);
+
+
+
+
 
 
 
@@ -1269,11 +2547,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
   });
 
 
 
+
+
+
+
 });
+
+
+
+
 
 
 
