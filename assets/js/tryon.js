@@ -1,729 +1,462 @@
 /**
- * 1RS Tattoo Studio — Virtual Tattoo Try-on Tool ("Примерка эскиза")
- * Zero preloaded default samples: starts in clean prompt state.
- * Allows taking real camera photos or uploading files for both body and sketch.
- * Dual-layer architecture:
- * Layer 1 (Tattoo Render): Active CSS mix-blend-mode (multiply / screen / normal) directly composited on skin.
- * Layer 2 (Controls Layer): Bounding box & 8 handles with normal blend, always crisp white & easy to click.
- * Features:
- * - Real-time canvas white/gray paper background cutoff slider ("Усиление умножения / Отсечение фона")
- * - Color Inversion (Negative) toggle for dark backgrounds / white lines (monochrome icon)
- * - Independent single-axis width/height stretch & freeform scaling
- * - 360° rotation stem
- * - Pixel-accurate HD download export
+ * 1RS Tattoo Studio — Virtual Tattoo Try-on
+ * Multi-sketch, flip-via-drag, no limits.
  */
+(function () {
+  "use strict";
 
-(function() {
-  // Elements
-  const bodyBg = document.getElementById('tryon-body-bg');
-  const tattooLayer = document.getElementById('tryon-tattoo-layer');
-  const controlsLayer = document.getElementById('tryon-controls-layer');
-  const sketchImg = document.getElementById('tryon-sketch-img');
-  const canvasContainer = document.getElementById('tryon-canvas-container');
+  /* ── DOM ── */
+  var bodyBg           = document.getElementById("tryon-body-bg");
+  var sketchesContainer = document.getElementById("tryon-sketches-container");
+  var canvasContainer  = document.getElementById("tryon-canvas-container");
+  var emptyState       = document.getElementById("tryon-empty-placeholder");
+  var floatingControls = document.getElementById("tryon-toolbar");
+  var actionsBar       = document.getElementById("tryon-actions");
 
-  // Empty State & Banner
-  const emptyState = document.getElementById('tryon-empty-state');
-  const sketchPromptBanner = document.getElementById('sketch-prompt-banner');
+  var inputBodyCamera  = document.getElementById("tryon-body-camera");
+  var inputBodyFile    = document.getElementById("tryon-body-file");
+  var inputSketchFile  = document.getElementById("tryon-sketch-file");
 
-  // Controls Inputs
-  const inputBodyCamera = document.getElementById('input-body-camera');
-  const inputBodyFile = document.getElementById('input-body-file');
-  const inputSketchCamera = document.getElementById('input-sketch-camera');
-  const inputSketchFile = document.getElementById('input-sketch-file');
+  var sliderOpacity    = document.getElementById("tryon-opacity-range");
+  var opacityValEl     = document.getElementById("tryon-opacity-val");
+  var btnDownload      = document.getElementById("tryon-btn-download");
 
-  const dropzoneBody = document.getElementById('dropzone-body');
-  const dropzoneSketch = document.getElementById('dropzone-sketch');
-  const bodyStatusBadge = document.getElementById('body-status-badge');
-  const sketchStatusBadge = document.getElementById('sketch-status-badge');
-  const btnRemoveBody = document.getElementById('btn-remove-body');
-  const btnRemoveSketch = document.getElementById('btn-remove-sketch');
+  if (!canvasContainer || !bodyBg) return;
 
-  const sliderThreshold = document.getElementById('slider-bg-threshold');
-  const thresholdValDisplay = document.getElementById('bg-threshold-val');
-  const btnToggleInvert = document.getElementById('btn-toggle-invert');
-  const sliderOpacity = document.getElementById('slider-opacity');
-  const opacityValDisplay = document.getElementById('opacity-val');
-  const blendPills = document.querySelectorAll('.blend-pill');
+  /* ── Global state ── */
+  var hasBody    = false;
+  var bodySrc    = null;
+  var sketches   = [];      // array of sketch objects
+  var activeSketch = null;  // currently selected sketch
 
-  const btnToggleHandles = document.getElementById('btn-toggle-handles');
-  const btnResetTransform = document.getElementById('btn-reset-transform-view');
-  const btnZoomIn = document.getElementById('btn-zoom-in');
-  const btnZoomOut = document.getElementById('btn-zoom-out');
-  const btnRotate90 = document.getElementById('btn-rotate-90');
-  const btnDownloadResult = document.getElementById('btn-download-tryon');
-  const btnSendTelegram = document.getElementById('btn-send-tryon-tg');
+  /* ===================================================================
+     SKETCH OBJECT
+     Each sketch has:
+       src, x, y, scaleX, scaleY, rotation, opacity
+       tattooEl, controlsEl
+     scaleX / scaleY can be negative → natural flip when dragged through
+  =================================================================== */
+  function createSketch(src, natW, natH) {
+    var aspectRatio = natW / natH;
+    var cRect = canvasContainer.getBoundingClientRect();
+    var cW = cRect.width  || 600;
+    var cH = cRect.height || 500;
 
-  if (!tattooLayer || !sketchImg || !bodyBg) return;
+    var initW = Math.min(220, cW * 0.45);
+    var initH = initW / aspectRatio;
 
-  // Master State
-  const state = {
-    x: 0,
-    y: 0,
-    width: 220,
-    height: 290,
-    rotation: 0,
-    opacity: 0.92,
-    blendMode: 'multiply',
-    threshold: 225,
-    inverted: false,
-    showHandles: true,
-    hasBody: false,
-    hasSketch: false,
-    rawSketchUrl: null
-  };
-
-  // =========================================================================
-  // REAL-TIME CANVAS WHITE BACKGROUND CUTOFF & INVERSION ALGORITHM
-  // Physically strips away paper background to transparent alpha in memory,
-  // making Multiply 100% effective on any photo/scan!
-  // =========================================================================
-  let isProcessing = false;
-  let nextProcessRequested = false;
-
-  function processSketchBackground(callback) {
-    if (!state.rawSketchUrl) return;
-    if (isProcessing) {
-      nextProcessRequested = true;
-      return;
-    }
-    isProcessing = true;
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-
-    img.onload = () => {
-      try {
-        const offCanvas = document.createElement('canvas');
-        const w = img.naturalWidth || img.width || 600;
-        const h = img.naturalHeight || img.height || 800;
-        offCanvas.width = w;
-        offCanvas.height = h;
-        const ctx = offCanvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-
-        const imgData = ctx.getImageData(0, 0, w, h);
-        const data = imgData.data;
-        const thresh = Number(state.threshold);
-        const isInverted = Boolean(state.inverted);
-
-        for (let i = 0; i < data.length; i += 4) {
-          let r = data[i];
-          let g = data[i + 1];
-          let b = data[i + 2];
-          let a = data[i + 3];
-
-          // Skip already transparent pixels
-          if (a === 0) continue;
-
-          // Invert colors if Negative mode is active
-          if (isInverted) {
-            r = 255 - r;
-            g = 255 - g;
-            b = 255 - b;
-          }
-
-          // Perceptual brightness formula
-          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-
-          // Background cutoff threshold
-          if (lum >= thresh) {
-            // Pure transparency for paper/white background
-            data[i + 3] = 0;
-          } else if (lum > thresh - 25) {
-            // Anti-aliased feathering on the edges of the ink
-            const factor = (thresh - lum) / 25;
-            data[i] = r;
-            data[i + 1] = g;
-            data[i + 2] = b;
-            data[i + 3] = Math.round(a * factor);
-          } else {
-            // Ink contour: boost contrast and depth
-            data[i] = Math.max(0, r - 10);
-            data[i + 1] = Math.max(0, g - 10);
-            data[i + 2] = Math.max(0, b - 10);
-            data[i + 3] = a;
-          }
-        }
-
-        ctx.putImageData(imgData, 0, 0);
-        const processedUrl = offCanvas.toDataURL('image/png');
-        sketchImg.src = processedUrl;
-        if (callback) callback(processedUrl);
-      } catch (err) {
-        // Fallback to source if canvas access blocked
-        sketchImg.src = state.rawSketchUrl;
-        if (callback) callback(state.rawSketchUrl);
-      } finally {
-        isProcessing = false;
-        if (nextProcessRequested) {
-          nextProcessRequested = false;
-          processSketchBackground();
-        }
-      }
+    var sk = {
+      src: src,
+      aspectRatio: aspectRatio,
+      // logical dimensions (always positive reference)
+      logW: initW,
+      logH: initH,
+      // actual signed scale (negative = flipped)
+      scaleX: 1,
+      scaleY: 1,
+      x: (cW - initW) / 2,
+      y: (cH - initH) / 2,
+      rotation: 0,
+      opacity: 0.92,
+      tattooEl: null,
+      controlsEl: null
     };
 
-    img.onerror = () => {
-      sketchImg.src = state.rawSketchUrl;
-      isProcessing = false;
-      if (callback) callback(state.rawSketchUrl);
+    sk.tattooEl   = buildTattooEl(src);
+    sk.controlsEl = buildControlsEl(sk);
+
+    sketchesContainer.appendChild(sk.tattooEl);
+    sketchesContainer.appendChild(sk.controlsEl);
+
+    sketches.push(sk);
+    selectSketch(sk);
+    applyTransform(sk);
+    return sk;
+  }
+
+  function buildTattooEl(src) {
+    var div = document.createElement("div");
+    div.className = "tryon-tattoo-layer";
+    div.style.display = "block";
+    var img = document.createElement("img");
+    img.className = "tryon-sketch-img";
+    img.src = src;
+    div.appendChild(img);
+    return div;
+  }
+
+  function buildControlsEl(sk) {
+    var div = document.createElement("div");
+    div.className = "tryon-controls-layer";
+    div.style.display = "block";
+    div.innerHTML =
+      '<div class="tryon-bounding-box">' +
+        '<div class="tryon-handle handle-tl" title="Масштабировать"></div>' +
+        '<div class="tryon-handle handle-tr" title="Масштабировать"></div>' +
+        '<div class="tryon-handle handle-br" title="Масштабировать"></div>' +
+        '<div class="tryon-handle handle-bl" title="Масштабировать"></div>' +
+        '<div class="tryon-handle handle-t"  title="Растянуть"></div>' +
+        '<div class="tryon-handle handle-b"  title="Растянуть"></div>' +
+        '<div class="tryon-handle handle-l"  title="Растянуть"></div>' +
+        '<div class="tryon-handle handle-r"  title="Растянуть"></div>' +
+        '<div class="tryon-rot-stem">' +
+          '<div class="tryon-handle handle-rot" title="Повернуть">' +
+            '<svg viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/></svg>' +
+          '</div>' +
+        '</div>' +
+        '<button class="tryon-delete-btn" title="Удалить эскиз">✕</button>' +
+      '</div>';
+
+    // Delete button
+    div.querySelector(".tryon-delete-btn").addEventListener("click", function (e) {
+      e.stopPropagation();
+      removeSketch(sk);
+    });
+
+    return div;
+  }
+
+  function removeSketch(sk) {
+    sk.tattooEl.remove();
+    sk.controlsEl.remove();
+    var idx = sketches.indexOf(sk);
+    if (idx !== -1) sketches.splice(idx, 1);
+
+    if (activeSketch === sk) {
+      activeSketch = sketches.length > 0 ? sketches[sketches.length - 1] : null;
+      if (activeSketch) selectSketch(activeSketch);
+      else {
+        if (floatingControls) floatingControls.style.display = "none";
+      }
+    }
+  }
+
+  function selectSketch(sk) {
+    // Deselect all
+    sketches.forEach(function (s) {
+      s.controlsEl.classList.remove("active-sketch");
+    });
+    sk.controlsEl.classList.add("active-sketch");
+    activeSketch = sk;
+
+    // Sync opacity slider
+    if (sliderOpacity) {
+      sliderOpacity.value = Math.round(sk.opacity * 100);
+      if (opacityValEl) opacityValEl.textContent = sliderOpacity.value + "%";
+    }
+
+    if (floatingControls) floatingControls.style.display = "flex";
+    if (actionsBar) actionsBar.style.display = "flex";
+  }
+
+  /* ===================================================================
+     TRANSFORM
+  =================================================================== */
+  function applyTransform(sk) {
+    var w  = sk.logW;
+    var h  = sk.logH;
+    var sx = sk.scaleX;
+    var sy = sk.scaleY;
+    var cx = sk.x + w / 2;
+    var cy = sk.y + h / 2;
+
+    // Tattoo: full transform with scaleX/Y
+    sk.tattooEl.style.width  = w + "px";
+    sk.tattooEl.style.height = h + "px";
+    sk.tattooEl.style.transform =
+      "translate(" + sk.x + "px," + sk.y + "px) " +
+      "rotate(" + sk.rotation + "deg) " +
+      "scaleX(" + sx + ") scaleY(" + sy + ")";
+    sk.tattooEl.style.opacity     = sk.opacity;
+    sk.tattooEl.style.mixBlendMode = "multiply";
+
+    // Controls: same position + rotation, but scale = abs (keep handles readable)
+    sk.controlsEl.style.width  = w + "px";
+    sk.controlsEl.style.height = h + "px";
+    sk.controlsEl.style.transform =
+      "translate(" + sk.x + "px," + sk.y + "px) " +
+      "rotate(" + sk.rotation + "deg)";
+  }
+
+  /* ===================================================================
+     INTERACTION
+  =================================================================== */
+  var active    = null;
+  var activeSk  = null;
+  var sx0 = 0, sy0 = 0;
+  var ss  = null;   // snapshot
+
+  function getHandle(el) {
+    if (el.classList.contains("handle-rot")) return "rotate";
+    if (el.classList.contains("handle-tl"))  return "tl";
+    if (el.classList.contains("handle-tr"))  return "tr";
+    if (el.classList.contains("handle-br"))  return "br";
+    if (el.classList.contains("handle-bl"))  return "bl";
+    if (el.classList.contains("handle-t"))   return "t";
+    if (el.classList.contains("handle-b"))   return "b";
+    if (el.classList.contains("handle-l"))   return "l";
+    if (el.classList.contains("handle-r"))   return "r";
+    return null;
+  }
+
+  function findSketchByEl(el) {
+    for (var i = 0; i < sketches.length; i++) {
+      var sk = sketches[i];
+      if (sk.controlsEl.contains(el) || sk.tattooEl.contains(el)) return sk;
+    }
+    return null;
+  }
+
+  function onDown(e) {
+    var target = e.target;
+    if (target.classList.contains("tryon-delete-btn")) return;
+
+    var sk = findSketchByEl(target);
+    if (!sk) return;
+    e.preventDefault();
+
+    selectSketch(sk);
+
+    var pt = e.touches ? e.touches[0] : e;
+    sx0 = pt.clientX;
+    sy0 = pt.clientY;
+    ss = {
+      x: sk.x, y: sk.y,
+      logW: sk.logW, logH: sk.logH,
+      scaleX: sk.scaleX, scaleY: sk.scaleY,
+      rotation: sk.rotation, opacity: sk.opacity,
+      visualAspectRatio: (sk.logW * Math.abs(sk.scaleX)) / (sk.logH * Math.abs(sk.scaleY))
     };
+    activeSk = sk;
+    active = getHandle(target) || "drag";
 
-    img.src = state.rawSketchUrl;
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup",   onUp);
+    window.addEventListener("touchmove",   onTouchMove, { passive: false });
+    window.addEventListener("touchend",    onUp);
   }
 
-  // =========================================================================
-  // BOUNDARY CLAMPING: Keeps handles and controls ALWAYS visible on-screen
-  // =========================================================================
-  function clampBounds() {
-    const container = canvasContainer || document.getElementById('tryon-canvas-container');
-    const cW = container ? container.clientWidth : 360;
-    const cH = container ? container.clientHeight : 500;
+  function onMove(e) {
+    if (!active || !activeSk) return;
+    e.preventDefault();
+    var sk = activeSk;
+    var pt = e.touches ? e.touches[0] : e;
+    var sdx = pt.clientX - sx0;
+    var sdy = pt.clientY - sy0;
 
-    // Maximum allowed dimensions so handles and stems never get clipped outside the screen
-    const maxW = Math.max(100, Math.floor(cW - 36));
-    const maxH = Math.max(100, Math.floor(cH - 54));
-
-    state.width = Math.max(60, Math.min(maxW, state.width));
-    state.height = Math.max(60, Math.min(maxH, state.height));
-
-    // Center bounds: keeps handles at least 16px inside canvas borders
-    const maxX = Math.max(0, Math.floor((cW / 2) - (state.width / 2) - 16));
-    const maxY = Math.max(0, Math.floor((cH / 2) - (state.height / 2) - 16));
-    // Rotation stem extends upwards, so minY leaves at least 48px headroom
-    const minY = Math.min(0, Math.floor(-(cH / 2) + (state.height / 2) + 48));
-
-    state.x = Math.max(-maxX, Math.min(maxX, state.x));
-    state.y = Math.max(minY, Math.min(maxY, state.y));
-  }
-
-  // =========================================================================
-  // SYNCHRONIZED TRANSFORM FOR BOTH LAYERS
-  // =========================================================================
-  function applyTransform() {
-    clampBounds();
-    const transformStr = `translate(-50%, -50%) translate3d(${state.x}px, ${state.y}px, 0) rotate(${state.rotation}deg)`;
-
-    // Layer 1: Tattoo Render Layer (Blends directly with bodyBg)
-    tattooLayer.style.width = `${state.width}px`;
-    tattooLayer.style.height = `${state.height}px`;
-    tattooLayer.style.transform = transformStr;
-    tattooLayer.style.opacity = state.opacity;
-    tattooLayer.style.mixBlendMode = state.blendMode;
-
-    // Layer 2: Transform Controls Layer (Handles & Outline - Unaffected by blendMode!)
-    if (controlsLayer) {
-      controlsLayer.style.width = `${state.width}px`;
-      controlsLayer.style.height = `${state.height}px`;
-      controlsLayer.style.transform = transformStr;
-
-      if (state.showHandles) {
-        controlsLayer.classList.remove('hide-handles');
-      } else {
-        controlsLayer.classList.add('hide-handles');
-      }
-    }
-  }
-
-  function initPosition() {
-    const container = canvasContainer || document.getElementById('tryon-canvas-container');
-    const cW = container ? container.clientWidth : 360;
-
-    // Proportionate initial size tailored to current screen width
-    state.width = Math.min(220, Math.max(140, Math.round(cW * 0.55)));
-    state.height = Math.round(state.width * 1.3);
-    state.x = 0;
-    state.y = 0;
-    state.rotation = 0;
-    clampBounds();
-    applyTransform();
-  }
-
-  // =========================================================================
-  // VIEWPORT STAGE VISIBILITY CONTROLLER
-  // =========================================================================
-  function updateViewportVisibility() {
-    const floatingBar = document.getElementById('viewport-floating-bar');
-
-    if (!state.hasBody) {
-      if (bodyBg) bodyBg.style.display = 'none';
-      if (emptyState) emptyState.style.display = 'flex';
-      if (sketchPromptBanner) sketchPromptBanner.style.display = 'none';
-      if (tattooLayer) tattooLayer.style.display = 'none';
-      if (controlsLayer) controlsLayer.style.display = 'none';
-      if (floatingBar) floatingBar.style.display = 'none';
-
-      if (bodyStatusBadge) bodyStatusBadge.style.display = 'none';
-      if (dropzoneBody) dropzoneBody.style.display = 'block';
-    } else {
-      if (bodyBg) bodyBg.style.display = 'block';
-      if (emptyState) emptyState.style.display = 'none';
-      if (bodyStatusBadge) bodyStatusBadge.style.display = 'flex';
-      if (dropzoneBody) dropzoneBody.style.display = 'none';
-
-      if (!state.hasSketch) {
-        if (sketchPromptBanner) sketchPromptBanner.style.display = 'flex';
-        if (tattooLayer) tattooLayer.style.display = 'none';
-        if (controlsLayer) controlsLayer.style.display = 'none';
-        if (floatingBar) floatingBar.style.display = 'none';
-      } else {
-        if (sketchPromptBanner) sketchPromptBanner.style.display = 'none';
-        if (tattooLayer) tattooLayer.style.display = 'block';
-        if (controlsLayer) controlsLayer.style.display = 'block';
-        if (floatingBar) floatingBar.style.display = 'flex';
-        applyTransform();
-      }
-    }
-
-    if (state.hasSketch) {
-      if (sketchStatusBadge) sketchStatusBadge.style.display = 'flex';
-      if (dropzoneSketch) dropzoneSketch.style.display = 'none';
-    } else {
-      if (sketchStatusBadge) sketchStatusBadge.style.display = 'none';
-      if (dropzoneSketch) dropzoneSketch.style.display = 'block';
-    }
-  }
-
-  // =========================================================================
-  // INTERACTIVE HANDLES & DRAGGING (On controlsLayer with Multi-Touch Support)
-  // =========================================================================
-  let isInteracting = false;
-  let interactionType = null;
-  let startX = 0, startY = 0;
-  let initWidth = 0, initHeight = 0, initX = 0, initY = 0;
-  let initRotation = 0;
-  let initPinchDist = 0;
-  let initPinchAngle = 0;
-  let layerCenter = { x: 0, y: 0 };
-
-  function onPointerDown(e, type) {
-    if (e.cancelable) e.preventDefault();
-    e.stopPropagation();
-    isInteracting = true;
-
-    // Check for Two-Finger Pinch / Twist on mobile
-    if (e.touches && e.touches.length >= 2) {
-      interactionType = 'pinch';
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      initPinchDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      initPinchAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
-      initWidth = state.width;
-      initHeight = state.height;
-      initRotation = state.rotation;
-      initX = state.x;
-      initY = state.y;
-      startX = (t1.clientX + t2.clientX) / 2;
-      startY = (t1.clientY + t2.clientY) / 2;
-    } else {
-      interactionType = type;
-      const pageX = e.touches ? e.touches[0].clientX : e.clientX;
-      const pageY = e.touches ? e.touches[0].clientY : e.clientY;
-
-      startX = pageX;
-      startY = pageY;
-      initX = state.x;
-      initY = state.y;
-      initWidth = state.width;
-      initHeight = state.height;
-      initRotation = state.rotation;
-
-      const targetEl = controlsLayer || tattooLayer;
-      const rect = targetEl.getBoundingClientRect();
-      layerCenter = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2
-      };
-    }
-
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('mouseup', onPointerUp);
-    window.addEventListener('touchmove', onPointerMove, { passive: false });
-    window.addEventListener('touchend', onPointerUp);
-    window.addEventListener('touchcancel', onPointerUp);
-  }
-
-  function onPointerMove(e) {
-    if (!isInteracting) return;
-    if (e.cancelable) e.preventDefault();
-
-    // Two-Finger Pinch Scaling & Rotation
-    if (interactionType === 'pinch' && e.touches && e.touches.length >= 2) {
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      const curDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      const curAngle = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
-
-      if (initPinchDist > 15) {
-        const ratio = curDist / initPinchDist;
-        state.width = Math.max(50, Math.round(initWidth * ratio));
-        state.height = Math.max(50, Math.round(initHeight * ratio));
-      }
-
-      const deltaDeg = (curAngle - initPinchAngle) * (180 / Math.PI);
-      state.rotation = Math.round(initRotation + deltaDeg);
-
-      // Two-finger smooth translation
-      const curMidX = (t1.clientX + t2.clientX) / 2;
-      const curMidY = (t1.clientY + t2.clientY) / 2;
-      state.x = initX + (curMidX - startX);
-      state.y = initY + (curMidY - startY);
-
-      applyTransform();
+    /* DRAG */
+    if (active === "drag") {
+      sk.x = ss.x + sdx;
+      sk.y = ss.y + sdy;
+      applyTransform(sk);
       return;
     }
 
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const dx = clientX - startX;
-    const dy = clientY - startY;
-
-    if (interactionType === 'drag') {
-      state.x = initX + dx;
-      state.y = initY + dy;
-    } else if (interactionType === 'rotate') {
-      const angleRad = Math.atan2(clientY - layerCenter.y, clientX - layerCenter.x);
-      let deg = angleRad * (180 / Math.PI) + 90;
-      state.rotation = Math.round(deg);
-    } else if (interactionType && interactionType.startsWith('scale')) {
-      const rad = (state.rotation * Math.PI) / 180;
-      const localDx = dx * Math.cos(-rad) - dy * Math.sin(-rad);
-      const localDy = dx * Math.sin(-rad) + dy * Math.cos(-rad);
-
-      // Side Handles: Independent Single-Axis Stretching
-      if (interactionType === 'scale-mr') {
-        state.width = Math.max(50, Math.round(initWidth + localDx * 1.6));
-      } else if (interactionType === 'scale-ml') {
-        state.width = Math.max(50, Math.round(initWidth - localDx * 1.6));
-      } else if (interactionType === 'scale-mb') {
-        state.height = Math.max(50, Math.round(initHeight + localDy * 1.6));
-      } else if (interactionType === 'scale-mt') {
-        state.height = Math.max(50, Math.round(initHeight - localDy * 1.6));
-      }
-      // Corner Handles: Freeform Proportional & Dual-Axis Scaling
-      else if (interactionType === 'scale-br') {
-        state.width = Math.max(50, Math.round(initWidth + localDx * 1.4));
-        state.height = Math.max(50, Math.round(initHeight + localDy * 1.4));
-      } else if (interactionType === 'scale-bl') {
-        state.width = Math.max(50, Math.round(initWidth - localDx * 1.4));
-        state.height = Math.max(50, Math.round(initHeight + localDy * 1.4));
-      } else if (interactionType === 'scale-tr') {
-        state.width = Math.max(50, Math.round(initWidth + localDx * 1.4));
-        state.height = Math.max(50, Math.round(initHeight - localDy * 1.4));
-      } else if (interactionType === 'scale-tl') {
-        state.width = Math.max(50, Math.round(initWidth - localDx * 1.4));
-        state.height = Math.max(50, Math.round(initHeight - localDy * 1.4));
-      }
+    /* ROTATE */
+    if (active === "rotate") {
+      var cRect = canvasContainer.getBoundingClientRect();
+      var cx = cRect.left + ss.x + ss.logW / 2;
+      var cy = cRect.top  + ss.y + ss.logH / 2;
+      sk.rotation = Math.round(Math.atan2(pt.clientY - cy, pt.clientX - cx) * 180 / Math.PI + 90);
+      applyTransform(sk);
+      return;
     }
 
-    applyTransform();
-  }
+    /* SCALE — project onto local axes (trig approach) */
+    var rad  = ss.rotation * Math.PI / 180;
+    var cosA = Math.cos(rad);
+    var sinA = Math.sin(rad);
 
-  function onPointerUp() {
-    isInteracting = false;
-    interactionType = null;
-    window.removeEventListener('mousemove', onPointerMove);
-    window.removeEventListener('mouseup', onPointerUp);
-    window.removeEventListener('touchmove', onPointerMove);
-    window.removeEventListener('touchend', onPointerUp);
-    window.removeEventListener('touchcancel', onPointerUp);
-  }
+    // local delta along element axes
+    var ldx =  sdx * cosA + sdy * sinA;
+    var ldy = -sdx * sinA + sdy * cosA;
 
-  // Attach drag handler to controls layer
-  const interactionHost = controlsLayer || tattooLayer;
-  interactionHost.addEventListener('mousedown', (e) => onPointerDown(e, 'drag'));
-  interactionHost.addEventListener('touchstart', (e) => onPointerDown(e, 'drag'), { passive: false });
+    // Account for current flip sign: if flipped, dragging right should shrink from left side
+    ldx *= ss.scaleX;
+    ldy *= ss.scaleY;
 
-  // Attach handle listeners
-  const handles = [
-    { sel: '.handle-tl', type: 'scale-tl' },
-    { sel: '.handle-tr', type: 'scale-tr' },
-    { sel: '.handle-br', type: 'scale-br' },
-    { sel: '.handle-bl', type: 'scale-bl' },
-    { sel: '.handle-mt', type: 'scale-mt' },
-    { sel: '.handle-mr', type: 'scale-mr' },
-    { sel: '.handle-mb', type: 'scale-mb' },
-    { sel: '.handle-ml', type: 'scale-ml' },
-    { sel: '.handle-rot', type: 'rotate' }
-  ];
+    var newW = ss.logW;
+    var newH = ss.logH;
+    var signW = 0, signH = 0;
 
-  handles.forEach(h => {
-    const el = interactionHost.querySelector(h.sel);
-    if (el) {
-      el.addEventListener('mousedown', (e) => onPointerDown(e, h.type));
-      el.addEventListener('touchstart', (e) => onPointerDown(e, h.type), { passive: false });
+    switch (active) {
+      case "r":  newW = ss.logW + ldx; signW =  1; break;
+      case "l":  newW = ss.logW - ldx; signW = -1; break;
+      case "b":  newH = ss.logH + ldy; signH =  1; break;
+      case "t":  newH = ss.logH - ldy; signH = -1; break;
+      case "br": newW = ss.logW + ldx; signW =  1; signH =  1; break;
+      case "bl": newW = ss.logW - ldx; signW = -1; signH =  1; break;
+      case "tr": newW = ss.logW + ldx; signW =  1; signH = -1; break;
+      case "tl": newW = ss.logW - ldx; signW = -1; signH = -1; break;
     }
+
+    // Corner: keep aspect ratio
+    if (signW !== 0 && signH !== 0) {
+      newH = Math.abs(newW) / ss.visualAspectRatio;
+      if (newW < 0) newH = -newH; // propagate flip direction for height sign logic
+    }
+
+    // Flip when size crosses zero — the sign of scaleX/scaleY flips
+    // logW/logH stay positive (represent the DOM size)
+    var newScaleX = ss.scaleX;
+    var newScaleY = ss.scaleY;
+
+    if (newW < 0) {
+      newScaleX = -ss.scaleX;
+      newW = -newW;
+    }
+    if (newH < 0) {
+      newScaleY = -ss.scaleY;
+      newH = -newH;
+    }
+
+    // Enforce minimum visual size
+    newW = Math.max(10, newW);
+    newH = Math.max(10, newH);
+
+    var dw = newW - ss.logW;
+    var dh = newH - ss.logH;
+
+    // Keep anchor corner/edge fixed by shifting center
+    var ncx = (ss.x + ss.logW / 2) + signW * (dw / 2) * cosA - signH * (dh / 2) * sinA;
+    var ncy = (ss.y + ss.logH / 2) + signW * (dw / 2) * sinA + signH * (dh / 2) * cosA;
+
+    sk.logW   = newW;
+    sk.logH   = newH;
+    sk.scaleX = newScaleX;
+    sk.scaleY = newScaleY;
+    sk.x = ncx - newW / 2;
+    sk.y = ncy - newH / 2;
+
+    applyTransform(sk);
+  }
+
+  function onTouchMove(e) { if (active) onMove(e); }
+
+  function onUp() {
+    active = null; activeSk = null;
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup",   onUp);
+    window.removeEventListener("touchmove",   onTouchMove);
+    window.removeEventListener("touchend",    onUp);
+  }
+
+  canvasContainer.addEventListener("pointerdown", onDown);
+  canvasContainer.addEventListener("touchstart",  onDown, { passive: false });
+
+  /* ===================================================================
+     BODY LOADING
+  =================================================================== */
+  function loadBodyImage(src) {
+    bodyBg.src = src;
+    bodyBg.onload = function () {
+      bodyBg.style.display = "block";
+      if (emptyState) emptyState.style.display = "none";
+      hasBody = true;
+      bodySrc = src;
+      if (actionsBar && sketches.length > 0) actionsBar.style.display = "flex";
+    };
+  }
+  function handleBodyFile(f) {
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function (e) { loadBodyImage(e.target.result); };
+    r.readAsDataURL(f);
+  }
+  if (inputBodyCamera) inputBodyCamera.addEventListener("change", function (e) { handleBodyFile(e.target.files[0]); });
+  if (inputBodyFile)   inputBodyFile.addEventListener("change",   function (e) { handleBodyFile(e.target.files[0]); });
+
+  /* ===================================================================
+     SKETCH LOADING
+  =================================================================== */
+  function loadSketchSrc(src) {
+    var img = new Image();
+    img.onload = function () {
+      createSketch(src, img.naturalWidth || 300, img.naturalHeight || 300);
+      if (actionsBar && hasBody) actionsBar.style.display = "flex";
+    };
+    img.src = src;
+  }
+  function handleSketchFiles(files) {
+    for (var i = 0; i < files.length; i++) {
+      (function (file) {
+        var r = new FileReader();
+        r.onload = function (e) { loadSketchSrc(e.target.result); };
+        r.readAsDataURL(file);
+      })(files[i]);
+    }
+  }
+  if (inputSketchFile) inputSketchFile.addEventListener("change", function (e) {
+    handleSketchFiles(e.target.files);
+    e.target.value = ""; // allow re-uploading same file
   });
 
-  // =========================================================================
-  // FILE & CAMERA UPLOADS (Both options offered cleanly)
-  // =========================================================================
-  function handleFile(file, callback) {
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => callback(e.target.result);
-    reader.readAsDataURL(file);
-  }
-
-  function setBodyImage(url) {
-    state.hasBody = true;
-    bodyBg.src = url;
-    updateViewportVisibility();
-  }
-
-  function setSketchImage(url) {
-    state.hasSketch = true;
-    state.rawSketchUrl = url;
-    updateViewportVisibility();
-    processSketchBackground(() => {
-      initPosition();
-    });
-  }
-
-  // Body Photo: Camera & File inputs
-  [inputBodyCamera, inputBodyFile].forEach(input => {
-    if (input) {
-      input.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          handleFile(e.target.files[0], setBodyImage);
-        }
-      });
-    }
-  });
-
-  if (dropzoneBody) {
-    dropzoneBody.addEventListener('dragover', (e) => { e.preventDefault(); dropzoneBody.classList.add('dragover'); });
-    dropzoneBody.addEventListener('dragleave', () => dropzoneBody.classList.remove('dragover'));
-    dropzoneBody.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzoneBody.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        handleFile(e.dataTransfer.files[0], setBodyImage);
-      }
-    });
-  }
-
-  if (btnRemoveBody) {
-    btnRemoveBody.addEventListener('click', () => {
-      state.hasBody = false;
-      bodyBg.src = '';
-      if (inputBodyCamera) inputBodyCamera.value = '';
-      if (inputBodyFile) inputBodyFile.value = '';
-      updateViewportVisibility();
-    });
-  }
-
-  // Sketch: Camera & File inputs
-  [inputSketchCamera, inputSketchFile].forEach(input => {
-    if (input) {
-      input.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          handleFile(e.target.files[0], setSketchImage);
-        }
-      });
-    }
-  });
-
-  if (dropzoneSketch) {
-    dropzoneSketch.addEventListener('dragover', (e) => { e.preventDefault(); dropzoneSketch.classList.add('dragover'); });
-    dropzoneSketch.addEventListener('dragleave', () => dropzoneSketch.classList.remove('dragover'));
-    dropzoneSketch.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzoneSketch.classList.remove('dragover');
-      if (e.dataTransfer.files.length) {
-        handleFile(e.dataTransfer.files[0], setSketchImage);
-      }
-    });
-  }
-
-  if (btnRemoveSketch) {
-    btnRemoveSketch.addEventListener('click', () => {
-      state.hasSketch = false;
-      state.rawSketchUrl = null;
-      sketchImg.src = '';
-      if (inputSketchCamera) inputSketchCamera.value = '';
-      if (inputSketchFile) inputSketchFile.value = '';
-      updateViewportVisibility();
-    });
-  }
-
-  // =========================================================================
-  // CONTROLS: THRESHOLD SLIDER, INVERSION, OPACITY & BLEND MODES
-  // =========================================================================
-  let debounceTimer = null;
-  if (sliderThreshold) {
-    sliderThreshold.addEventListener('input', (e) => {
-      state.threshold = Number(e.target.value);
-      if (thresholdValDisplay) thresholdValDisplay.textContent = state.threshold;
-
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        processSketchBackground();
-      }, 35);
-    });
-  }
-
-  if (btnToggleInvert) {
-    btnToggleInvert.addEventListener('click', () => {
-      state.inverted = !state.inverted;
-      btnToggleInvert.classList.toggle('active', state.inverted);
-      processSketchBackground();
-    });
-  }
-
+  /* ===================================================================
+     TOOLBAR
+  =================================================================== */
   if (sliderOpacity) {
-    sliderOpacity.addEventListener('input', (e) => {
-      state.opacity = e.target.value / 100;
-      if (opacityValDisplay) opacityValDisplay.textContent = `${e.target.value}%`;
-      applyTransform();
+    sliderOpacity.addEventListener("input", function (e) {
+      if (!activeSketch) return;
+      activeSketch.opacity = e.target.value / 100;
+      if (opacityValEl) opacityValEl.textContent = e.target.value + "%";
+      applyTransform(activeSketch);
     });
   }
 
-  blendPills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      blendPills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      state.blendMode = pill.getAttribute('data-mode') || 'multiply';
-      applyTransform();
-    });
-  });
+  /* ===================================================================
+     HD DOWNLOAD — composites all sketches
+  =================================================================== */
+  if (btnDownload) {
+    btnDownload.addEventListener("click", function () {
+      if (!hasBody)           { alert("Сначала загрузите фото тела."); return; }
+      if (!sketches.length)   { alert("Добавьте хотя бы один эскиз."); return; }
 
-  if (btnZoomIn) {
-    btnZoomIn.addEventListener('click', () => {
-      state.width = Math.round(state.width * 1.15);
-      state.height = Math.round(state.height * 1.15);
-      applyTransform();
-    });
-  }
+      var bodyEl = new Image();
+      bodyEl.crossOrigin = "anonymous";
+      bodyEl.onload = function () {
+        var ow = bodyEl.naturalWidth  || 1200;
+        var oh = bodyEl.naturalHeight || 900;
+        var canvas = document.createElement("canvas");
+        canvas.width = ow; canvas.height = oh;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(bodyEl, 0, 0, ow, oh);
 
-  if (btnZoomOut) {
-    btnZoomOut.addEventListener('click', () => {
-      state.width = Math.round(state.width * 0.85);
-      state.height = Math.round(state.height * 0.85);
-      applyTransform();
-    });
-  }
+        var cR = canvasContainer.getBoundingClientRect();
+        var kx = ow / cR.width, ky = oh / cR.height;
 
-  if (btnRotate90) {
-    btnRotate90.addEventListener('click', () => {
-      state.rotation = (state.rotation + 90) % 360;
-      applyTransform();
-    });
-  }
-
-  if (btnToggleHandles) {
-    btnToggleHandles.addEventListener('click', () => {
-      state.showHandles = !state.showHandles;
-      applyTransform();
-      btnToggleHandles.classList.toggle('active', !state.showHandles);
-    });
-  }
-
-  if (btnResetTransform) {
-    btnResetTransform.addEventListener('click', initPosition);
-  }
-
-  // =========================================================================
-  // PIXEL-PERFECT HD DOWNLOAD EXPORT
-  // Exactly maps screen coordinates & pixel ratios to actual natural image resolution!
-  // =========================================================================
-  if (btnDownloadResult) {
-    btnDownloadResult.addEventListener('click', () => {
-      if (!state.hasBody) {
-        alert('Пожалуйста, сначала сфотографируйте или загрузите фото участка вашего тела.');
-        return;
-      }
-      if (!state.hasSketch) {
-        alert('Пожалуйста, сначала сфотографируйте или выберите эскиз татуировки.');
-        return;
-      }
-
-      const bImg = new Image();
-      bImg.crossOrigin = 'anonymous';
-
-      bImg.onload = () => {
-        const origW = bImg.naturalWidth || bImg.width || 1200;
-        const origH = bImg.naturalHeight || bImg.height || 1600;
-
-        const exportCanvas = document.createElement('canvas');
-        exportCanvas.width = origW;
-        exportCanvas.height = origH;
-        const ctx = exportCanvas.getContext('2d');
-
-        // Draw body photo
-        ctx.drawImage(bImg, 0, 0, origW, origH);
-
-        // Get exact rendered bounding box of body image on screen
-        const bodyRect = bodyBg.getBoundingClientRect();
-        const tattooRect = tattooLayer.getBoundingClientRect();
-
-        // Scale factors relative to actual natural image pixels
-        const scaleX = origW / bodyRect.width;
-        const scaleY = origH / bodyRect.height;
-
-        // Position of tattoo center relative to body center in image coordinates
-        const tattooScreenCenterX = tattooRect.left + tattooRect.width / 2;
-        const tattooScreenCenterY = tattooRect.top + tattooRect.height / 2;
-
-        const bodyScreenCenterX = bodyRect.left + bodyRect.width / 2;
-        const bodyScreenCenterY = bodyRect.top + bodyRect.height / 2;
-
-        const exportCenterX = origW / 2 + (tattooScreenCenterX - bodyScreenCenterX) * scaleX;
-        const exportCenterY = origH / 2 + (tattooScreenCenterY - bodyScreenCenterY) * scaleY;
-
-        // Pixel-accurate unrotated dimensions scaled to original image resolution
-        const exportTattooW = state.width * scaleX;
-        const exportTattooH = state.height * scaleY;
-
-        // Load the current processed tattoo image (with background stripped)
-        const tImg = new Image();
-        tImg.crossOrigin = 'anonymous';
-        tImg.onload = () => {
-          ctx.save();
-          ctx.translate(exportCenterX, exportCenterY);
-          ctx.rotate((state.rotation * Math.PI) / 180);
-          ctx.globalAlpha = state.opacity;
-
-          // Blend Mode
-          if (state.blendMode === 'screen') {
-            ctx.globalCompositeOperation = 'screen';
-          } else if (state.blendMode === 'multiply') {
-            ctx.globalCompositeOperation = 'multiply';
-          } else {
-            ctx.globalCompositeOperation = 'source-over';
-          }
-
-          ctx.drawImage(tImg, -exportTattooW / 2, -exportTattooH / 2, exportTattooW, exportTattooH);
-          ctx.restore();
-
-          // Studio Watermark
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-          ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-          ctx.fillText('1RS TATTOO STUDIO // ПРИМЕРКА ЭСКИЗА', 40, origH - 40);
-
-          // Trigger HD Download
-          const a = document.createElement('a');
-          a.download = '1rs-tattoo-preview.png';
-          a.href = exportCanvas.toDataURL('image/png');
-          a.click();
-        };
-        tImg.src = sketchImg.src;
+        var pending = sketches.length;
+        sketches.forEach(function (sk) {
+          var skEl = new Image();
+          skEl.crossOrigin = "anonymous";
+          skEl.onload = function () {
+            var sW  = sk.logW * kx, sH = sk.logH * ky;
+            var sCx = (sk.x + sk.logW / 2) * kx;
+            var sCy = (sk.y + sk.logH / 2) * ky;
+            ctx.save();
+            ctx.translate(sCx, sCy);
+            ctx.rotate(sk.rotation * Math.PI / 180);
+            ctx.scale(sk.scaleX, sk.scaleY);
+            ctx.globalAlpha = sk.opacity;
+            ctx.globalCompositeOperation = "multiply";
+            ctx.drawImage(skEl, -sW / 2, -sH / 2, sW, sH);
+            ctx.restore();
+            pending--;
+            if (pending === 0) {
+              var a = document.createElement("a");
+              a.download = "1RS_Tattoo_Tryon.jpg";
+              a.href = canvas.toDataURL("image/jpeg", 0.95);
+              document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            }
+          };
+          skEl.src = sk.src;
+        });
       };
-
-      bImg.src = bodyBg.src;
+      bodyEl.src = bodySrc;
     });
   }
 
-  // Telegram Direct Share
-  if (btnSendTelegram) {
-    btnSendTelegram.addEventListener('click', () => {
-      const msg = encodeURIComponent('Здравствуйте! Я сделал примерку эскиза на сайте 1RS Tattoo Studio и хочу записаться к вам на консультацию.');
-      window.open(`https://t.me/tattoo1rs?text=${msg}`, '_blank');
-    });
-  }
+  window.addEventListener("resize", function () {
+    sketches.forEach(function (sk) { applyTransform(sk); });
+  }, { passive: true });
 
-  // Initialize
-  window.addEventListener('load', () => {
-    initPosition();
-    updateViewportVisibility();
-  });
 })();

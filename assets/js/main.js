@@ -1,2569 +1,336 @@
 /**
-
-
-
-
-
-
-
- * 1RS Tattoo Studio — Main UI Logic
-
-
-
-
-
-
-
- * Sticky header, ScrollSpy, Scroll Reveal, Hero Stats Animation, Lightbox, FAQ, Booking Form
-
-
-
-
-
-
-
+ * 1RS Tattoo Studio — Main Interactive Script
  */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 1. STICKY HEADER & SCROLLSPY
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const header = document.querySelector('.site-header');
-
-
-
-
-
-
-
-  const navLinks = document.querySelectorAll('.nav-menu .nav-link');
-
-
-
-
-
-
-
-  const sections = document.querySelectorAll('section[id]');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  function onScroll() {
-
-
-
-
-
-
-
-    const scrollY = window.scrollY;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Header blur & padding transition
-
-
-
-
-
-
-
-    if (scrollY > 30) {
-
-
-
-
-
-
-
-      header.classList.add('scrolled');
-
-
-
-
-
-
-
-    } else {
-
-
-
-
-
-
-
-      header.classList.remove('scrolled');
-
-
-
-
-
-
-
+(function () {
+  "use strict";
+
+  // 1. SCROLL REVEAL ANIMATIONS
+  const observerCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  };
+
+  const revealObserver = new IntersectionObserver(observerCallback, {
+    rootMargin: "0px 0px -60px 0px",
+    threshold: 0.08
+  });
+
+  document.querySelectorAll(".fade-in-up").forEach(el => {
+    revealObserver.observe(el);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll(".fade-in-up").forEach(el => el.classList.add("visible"));
+  }, 2500);
+
+  // 2. STICKY HEADER & ACTIVE NAV SCROLLSPY
+  const header = document.querySelector(".site-header");
+  const navLinks = document.querySelectorAll(".nav-menu .nav-link");
+  const sections = document.querySelectorAll("section[id]");
+
+  function handleHeaderScroll() {
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    if (header) {
+      header.classList.toggle("scrolled", scrollY > 30);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // ScrollSpy: highlight active link in header
-
-
-
-
-
-
-
-    let currentSectionId = '';
-
-
-
-
-
-
-
-    sections.forEach(section => {
-
-
-
-
-
-
-
-      const top = section.offsetTop - 120;
-
-
-
-
-
-
-
-      const height = section.offsetHeight;
-
-
-
-
-
-
-
-      if (scrollY >= top && scrollY < top + height) {
-
-
-
-
-
-
-
-        currentSectionId = section.getAttribute('id');
-
-
-
-
-
-
-
+    let activeId = "";
+    sections.forEach(sec => {
+      const top = sec.offsetTop - 140;
+      if (scrollY >= top && scrollY < top + sec.offsetHeight) {
+        activeId = sec.getAttribute("id");
       }
-
-
-
-
-
-
-
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     navLinks.forEach(link => {
-
-
-
-
-
-
-
-      link.classList.remove('active');
-
-
-
-
-
-
-
-      const href = link.getAttribute('href');
-
-
-
-
-
-
-
-      if (href === `#${currentSectionId}`) {
-
-
-
-
-
-
-
-        link.classList.add('active');
-
-
-
-
-
-
-
-      }
-
-
-
-
-
-
-
+      link.classList.toggle("active", activeId && link.getAttribute("href") === "#" + activeId);
     });
+  }
 
+  window.addEventListener("scroll", handleHeaderScroll, { passive: true });
+  handleHeaderScroll();
 
+  // 3. MOBILE DRAWER
+  const mobileToggle = document.querySelector(".mobile-toggle");
+  const mobileDrawer = document.getElementById("mobile-drawer");
+  const drawerLinks = document.querySelectorAll(".mobile-nav-link");
 
+  function toggleDrawer(open) {
+    if (!mobileDrawer || !mobileToggle) return;
+    const shouldOpen = open !== undefined ? open : !mobileDrawer.classList.contains("open");
+    mobileDrawer.classList.toggle("open", shouldOpen);
+    mobileToggle.classList.toggle("active", shouldOpen);
+    document.body.style.overflow = shouldOpen ? "hidden" : "";
+  }
 
+  if (mobileToggle) mobileToggle.addEventListener("click", () => toggleDrawer());
+  drawerLinks.forEach(link => link.addEventListener("click", () => toggleDrawer(false)));
 
+  // 4. STATS COUNTER ANIMATION
+  const statNumbers = document.querySelectorAll(".stat-number[data-target]");
+  let statsCounted = false;
 
+  function countUp(el) {
+    const target = parseFloat(el.getAttribute("data-target"));
+    if (isNaN(target)) return;
 
+    const duration = 1800;
+    const startTime = performance.now();
 
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const currentVal = target * ease;
 
-
-
-
-
-
-
-    // Floating Dock visibility:
-
-
-
-
-
-
-
-    // 1. Hidden on Hero section (top 260px) so it NEVER covers the main CTA buttons on mobile!
-
-
-
-
-
-
-
-    // 2. Hidden in Try-on section so it NEVER covers camera/upload buttons or handles!
-
-
-
-
-
-
-
-    // 3. Visible everywhere else (About, Masters, Portfolio, Calculator, FAQ, Contact)
-
-
-
-
-
-
-
-    const floatingDock = document.querySelector('.floating-quick-dock');
-
-    if (floatingDock) {
-
-      const heroSection = document.querySelector('.hero-section');
-
-      const tryonSection = document.getElementById('tryon');
-
-      const inHero = heroSection ? (heroSection.getBoundingClientRect().bottom > 140) : (scrollY < 500);
-
-      const inTryon = tryonSection ? (
-
-        tryonSection.getBoundingClientRect().top < window.innerHeight &&
-
-        tryonSection.getBoundingClientRect().bottom > 80
-
-      ) : false;
-
-
-
-      if (inHero || inTryon) {
-
-        floatingDock.classList.add('dock-hidden');
-
+      if (target >= 1000) {
+        el.textContent = (currentVal / 1000).toFixed(1) + "k";
+      } else if (target === 100) {
+        el.textContent = Math.round(currentVal) + "%";
+      } else if (target === 49) {
+        el.textContent = (currentVal / 10).toFixed(1) + "★";
       } else {
-
-        floatingDock.classList.remove('dock-hidden');
-
+        el.textContent = Math.round(currentVal) + "+";
       }
 
+      if (progress < 1) requestAnimationFrame(update);
     }
 
-
-
-
-
-
-
+    requestAnimationFrame(update);
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-
-
-
-
-
-
-  onScroll();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 2. MOBILE DRAWER TOGGLE
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const mobileToggle = document.querySelector('.mobile-toggle');
-
-
-
-
-
-
-
-  const mobileDrawer = document.querySelector('.mobile-drawer');
-
-
-
-
-
-
-
-  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  if (mobileToggle && mobileDrawer) {
-
-
-
-
-
-
-
-    mobileToggle.addEventListener('click', () => {
-
-
-
-
-
-
-
-      const isOpen = mobileDrawer.classList.contains('open');
-
-
-
-
-
-
-
-      mobileToggle.classList.toggle('active', !isOpen);
-
-
-
-
-
-
-
-      mobileDrawer.classList.toggle('open', !isOpen);
-
-
-
-
-
-
-
-      document.body.style.overflow = !isOpen ? 'hidden' : '';
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    mobileNavLinks.forEach(link => {
-
-
-
-
-
-
-
-      link.addEventListener('click', () => {
-
-
-
-
-
-
-
-        mobileToggle.classList.remove('active');
-
-
-
-
-
-
-
-        mobileDrawer.classList.remove('open');
-
-
-
-
-
-
-
-        document.body.style.overflow = '';
-
-
-
-
-
-
-
-      });
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
+  if (statNumbers.length > 0) {
+    const statsObserver = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !statsCounted) {
+            statsCounted = true;
+            statNumbers.forEach(el => countUp(el));
+            obs.disconnect();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    const statsContainer = document.querySelector(".hero-stats-row");
+    if (statsContainer) statsObserver.observe(statsContainer);
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // Smooth Scroll to Top on Brand Logo Click
-
-
-
-
-
-
-
-  const brandLogos = document.querySelectorAll('.brand-logo');
-
-
-
-
-
-
-
-  brandLogos.forEach(logo => {
-
-
-
-
-
-
-
-    logo.addEventListener('click', (e) => {
-
-
-
-
-
-
-
-      e.preventDefault();
-
-
-
-
-
-
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 3. SCROLL REVEAL ANIMATIONS (IntersectionObserver)
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const revealElements = document.querySelectorAll(
-
-
-
-
-
-
-
-    '.reveal, .standard-card, .master-card, .review-card, .calc-step-box, .calc-result-box, .contact-detail-item, .faq-item'
-
-
-
-
-
-
-
-  );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  if ('IntersectionObserver' in window) {
-
-
-
-
-
-
-
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-
-
-
-
-
-
-
-      entries.forEach(entry => {
-
-
-
-
-
-
-
-        if (entry.isIntersecting) {
-
-
-
-
-
-
-
-          entry.target.classList.add('in-view');
-
-
-
-
-
-
-
-          observer.unobserve(entry.target);
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-      });
-
-
-
-
-
-
-
-    }, {
-
-
-
-
-
-
-
-      rootMargin: '120px 0px 80px 0px',
-
-
-
-
-
-
-
-      threshold: 0.01
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    revealElements.forEach((el, index) => {
-
-
-
-
-
-
-
-      el.classList.add('reveal');
-
-
-
-
-
-
-
-      // Apply subtle stagger to children in grids
-
-
-
-
-
-
-
-      if (index % 4 === 1) el.classList.add('reveal-delay-1');
-
-
-
-
-
-
-
-      if (index % 4 === 2) el.classList.add('reveal-delay-2');
-
-
-
-
-
-
-
-      if (index % 4 === 3) el.classList.add('reveal-delay-3');
-
-
-
-
-
-
-
-      revealObserver.observe(el);
-
-    });
-
-
-
-    // Safety fallback: ensure all content becomes visible
-
-    setTimeout(() => {
-
-      revealElements.forEach(el => el.classList.add('in-view'));
-
-    }, 1200);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  } else {
-
-
-
-
-
-
-
-    // Fallback for older browsers
-
-
-
-
-
-
-
-    revealElements.forEach(el => el.classList.add('in-view'));
-
-
-
-
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 4. ANIMATED STATS COUNTER IN HERO
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const statItems = document.querySelectorAll('.hero-stat-item .stat-value');
-
-
-
-
-
-
-
-  let statsAnimated = false;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  function animateStats() {
-
-
-
-
-
-
-
-    if (statsAnimated) return;
-
-
-
-
-
-
-
-    statsAnimated = true;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    statItems.forEach(item => {
-
-
-
-
-
-
-
-      const text = item.textContent.trim();
-
-
-
-
-
-
-
-      const match = text.match(/([\d\.]+)/);
-
-
-
-
-
-
-
-      if (!match) return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      const targetNum = parseFloat(match[1]);
-
-
-
-
-
-
-
-      const suffix = text.replace(match[1], '');
-
-
-
-
-
-
-
-      const isFloat = match[1].includes('.');
-
-
-
-
-
-
-
-      const startTime = performance.now();
-
-
-
-
-
-
-
-      const duration = 1600;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      function updateCounter(currentTime) {
-
-
-
-
-
-
-
-        const elapsed = currentTime - startTime;
-
-
-
-
-
-
-
-        const progress = Math.min(elapsed / duration, 1);
-
-
-
-
-
-
-
-        // Easing: easeOutCubic
-
-
-
-
-
-
-
-        const ease = 1 - Math.pow(1 - progress, 3);
-
-
-
-
-
-
-
-        const currentVal = (targetNum * ease);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        const formatted = isFloat ? currentVal.toFixed(1) : Math.floor(currentVal);
-
-
-
-
-
-
-
-        item.innerHTML = `${formatted}<span>${suffix}</span>`;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        if (progress < 1) {
-
-
-
-
-
-
-
-          requestAnimationFrame(updateCounter);
-
-
-
-
-
-
-
-        } else {
-
-
-
-
-
-
-
-          const finalVal = isFloat ? targetNum.toFixed(1) : targetNum;
-
-
-
-
-
-
-
-          item.innerHTML = `${finalVal}<span>${suffix}</span>`;
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-      }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      requestAnimationFrame(updateCounter);
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // Trigger stats counter
-
-
-
-
-
-
-
-  setTimeout(animateStats, 300);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 5. PORTFOLIO FILTERS
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const filterBtns = document.querySelectorAll('.filter-btn');
-
-
-
-
-
-
-
-  const portfolioItems = document.querySelectorAll('.portfolio-item');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // 5. PORTFOLIO FILTERING
+  const filterBtns = document.querySelectorAll(".filter-btn");
+  const portfolioItems = document.querySelectorAll(".portfolio-item");
 
   filterBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      filterBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
 
-
-
-
-
-
-
-    btn.addEventListener('click', () => {
-
-
-
-
-
-
-
-      filterBtns.forEach(b => b.classList.remove('active'));
-
-
-
-
-
-
-
-      btn.classList.add('active');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      const filter = btn.getAttribute('data-filter');
-
-
-
-
-
-
-
+      const filter = btn.getAttribute("data-filter");
       portfolioItems.forEach(item => {
+        const cat = item.getAttribute("data-category");
+        const show = filter === "all" || cat === filter;
 
-
-
-
-
-
-
-        const cat = item.getAttribute('data-category');
-
-
-
-
-
-
-
-        if (filter === 'all' || cat === filter) {
-
-
-
-
-
-
-
-          item.style.display = 'block';
-
-
-
-
-
-
-
-          item.style.animation = 'fadeInUp 0.4s ease forwards';
-
-
-
-
-
-
-
+        if (show) {
+          item.style.display = "";
+          requestAnimationFrame(() => {
+            item.style.opacity = "1";
+            item.style.transform = "scale(1)";
+          });
         } else {
-
-
-
-
-
-
-
-          item.style.display = 'none';
-
-
-
-
-
-
-
+          item.style.opacity = "0";
+          item.style.transform = "scale(0.95)";
+          setTimeout(() => { item.style.display = "none"; }, 300);
         }
-
-
-
-
-
-
-
       });
-
-
-
-
-
-
-
     });
-
-
-
-
-
-
-
   });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
 
   // 6. LIGHTBOX MODAL
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const lightboxModal = document.getElementById('lightbox-modal');
-
-
-
-
-
-
-
-  const lightboxImg = document.getElementById('lightbox-img');
-
-
-
-
-
-
-
-  const lightboxCaption = document.getElementById('lightbox-caption');
-
-
-
-
-
-
-
-  const modalCloseBtns = document.querySelectorAll('.modal-close-btn');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  portfolioItems.forEach(item => {
-
-
-
-
-
-
-
-    item.addEventListener('click', () => {
-
-
-
-
-
-
-
-      const img = item.querySelector('img');
-
-
-
-
-
-
-
-      const title = item.querySelector('.portfolio-title')?.textContent || 'Татуировка 1RS';
-
-
-
-
-
-
-
-      const tag = item.querySelector('.portfolio-tag')?.textContent || 'Галерея';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      if (lightboxModal && lightboxImg && img) {
-
-
-
-
-
-
-
-        lightboxImg.src = img.src;
-
-
-
-
-
-
-
-        if (lightboxCaption) {
-
-
-
-
-
-
-
-          lightboxCaption.innerHTML = `<div><strong>${title}</strong><div style="font-size:0.8rem;color:var(--accent-gold);margin-top:2px;">Стиль: ${tag}</div></div>`;
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-        lightboxModal.classList.add('open');
-
-
-
-
-
-
-
-      }
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 7. BOOKING MODAL TRIGGERS
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const bookingModal = document.getElementById('booking-modal');
-
-
-
-
-
-
-
-  const openBookingBtns = document.querySelectorAll('.open-booking-modal');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  openBookingBtns.forEach(btn => {
-
-
-
-
-
-
-
-    btn.addEventListener('click', (e) => {
-
-
-
-
-
-
-
-      e.preventDefault();
-
-
-
-
-
-
-
-      const masterName = btn.getAttribute('data-master-name');
-
-
-
-
-
-
-
-      if (masterName) {
-
-
-
-
-
-
-
-        const masterSelect = document.getElementById('modal-master-select');
-
-
-
-
-
-
-
-        if (masterSelect) masterSelect.value = masterName;
-
-
-
-
-
-
-
-      }
-
-
-
-
-
-
-
-      if (bookingModal) bookingModal.classList.add('open');
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // Close modals
-
-
-
-
-
-
-
-  modalCloseBtns.forEach(btn => {
-
-
-
-
-
-
-
-    btn.addEventListener('click', () => {
-
-
-
-
-
-
-
-      if (lightboxModal) lightboxModal.classList.remove('open');
-
-
-
-
-
-
-
-      if (bookingModal) bookingModal.classList.remove('open');
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  document.querySelectorAll('.modal-backdrop').forEach(modal => {
-
-
-
-
-
-
-
-    modal.addEventListener('click', (e) => {
-
-
-
-
-
-
-
-      if (e.target === modal) {
-
-
-
-
-
-
-
-        modal.classList.remove('open');
-
-
-
-
-
-
-
-      }
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // Escape key closes modals
-
-
-
-
-
-
-
-  window.addEventListener('keydown', (e) => {
-
-
-
-
-
-
-
-    if (e.key === 'Escape') {
-
-
-
-
-
-
-
-      if (lightboxModal) lightboxModal.classList.remove('open');
-
-
-
-
-
-
-
-      if (bookingModal) bookingModal.classList.remove('open');
-
-
-
-
-
-
-
-      const mobileSimModal = document.getElementById('mobile-sim-modal');
-
-
-
-
-
-
-
-      if (mobileSimModal) {
-
-
-
-
-
-
-
-        mobileSimModal.classList.remove('open');
-
-
-
-
-
-
-
-        document.body.style.overflow = '';
-
-
-
-
-
-
-
-      }
-
-
-
-
-
-
-
-    }
-
-
-
-
-
-
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 8. FAQ ACCORDION
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  const faqItems = document.querySelectorAll('.faq-item');
-
-
-
-
-
-
-
-  faqItems.forEach(item => {
-
-
-
-
-
-
-
-    const header = item.querySelector('.faq-header');
-
-
-
-
-
-
-
-    header.addEventListener('click', () => {
-
-
-
-
-
-
-
-      const isActive = item.classList.contains('active');
-
-
-
-
-
-
-
-      faqItems.forEach(i => i.classList.remove('active'));
-
-
-
-
-
-
-
-      if (!isActive) item.classList.add('active');
-
-
-
-
-
-
-
-    });
-
-
-
-
-
-
-
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 9. MOBILE PREVIEW SIMULATOR (iPhone Frame)
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  // 10. TOAST NOTIFICATIONS & BOOKING FORMS
-
-
-
-
-
-
-
-  // =========================================================================
-
-
-
-
-
-
-
-  function showToast(message) {
-
-
-
-
-
-
-
-    let toast = document.querySelector('.toast-notice');
-
-
-
-
-
-
-
-    if (!toast) {
-
-
-
-
-
-
-
-      toast = document.createElement('div');
-
-
-
-
-
-
-
-      toast.className = 'toast-notice';
-
-
-
-
-
-
-
-      document.body.appendChild(toast);
-
-
-
-
-
-
-
-    }
-
-
-
-
-
-
-
-    toast.innerHTML = `<span style="color:var(--accent-gold)">✓</span> ${message}`;
-
-
-
-
-
-
-
-    toast.classList.add('show');
-
-
-
-
-
-
-
-    setTimeout(() => {
-
-
-
-
-
-
-
-      toast.classList.remove('show');
-
-
-
-
-
-
-
-    }, 4500);
-
-
-
-
-
-
-
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
+  const lightboxClose = document.querySelector(".lightbox-close");
+  const lightboxBackdrop = document.querySelector(".lightbox-backdrop");
+
+  function openLightbox(src, alt) {
+    if (!lightbox || !lightboxImg) return;
+    lightboxImg.src = src;
+    lightboxImg.alt = alt || "1RS Tattoo";
+    lightbox.classList.add("active");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const bookingForms = document.querySelectorAll('form.booking-form, form#modal-booking-form, form#contact-booking-form');
-
-
-
-
-
-
-
-  bookingForms.forEach(form => {
-
-
-
-
-
-
-
-    form.addEventListener('submit', (e) => {
-
-
-
-
-
-
-
-      e.preventDefault();
-
-
-
-
-
-
-
-      const nameInput = form.querySelector('input[name="name"]');
-
-
-
-
-
-
-
-      const phoneInput = form.querySelector('input[name="phone"]');
-
-
-
-
-
-
-
-      const masterInput = form.querySelector('select[name="master"]');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      const name = nameInput ? nameInput.value.trim() : 'Гость';
-
-
-
-
-
-
-
-      const phone = phoneInput ? phoneInput.value.trim() : '';
-
-
-
-
-
-
-
-      const master = masterInput ? masterInput.value : 'Любой мастер';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      showToast(`Спасибо, ${name}! Заявка принята. Администратор свяжется с вами в течение 10 минут.`);
-
-
-
-
-
-
-
-      if (bookingModal) bookingModal.classList.remove('open');
-
-
-
-
-
-
-
-      form.reset();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      setTimeout(() => {
-
-
-
-
-
-
-
-        const confirmTg = confirm('Хотите продублировать вашу заявку напрямую мастеру в Telegram для ускоренного ответа?');
-
-
-
-
-
-
-
-        if (confirmTg) {
-
-
-
-
-
-
-
-          const text = encodeURIComponent(`Здравствуйте! Меня зовут ${name}. Хочу записаться на сеанс (Мастер: ${master}, Телефон: ${phone}).`);
-
-
-
-
-
-
-
-          window.open(`https://t.me/tattoo1rs?text=${text}`, '_blank');
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-      }, 900);
-
-
-
-
-
-
-
+  function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.classList.remove("active");
+    lightbox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  portfolioItems.forEach(item => {
+    item.addEventListener("click", () => {
+      const img = item.querySelector("img");
+      if (img) openLightbox(img.src, img.alt);
     });
-
-
-
-
-
-
-
   });
 
+  if (lightboxClose) lightboxClose.addEventListener("click", closeLightbox);
+  if (lightboxBackdrop) lightboxBackdrop.addEventListener("click", closeLightbox);
+  window.addEventListener("keydown", e => {
+    if (e.key === "Escape" && lightbox && lightbox.classList.contains("active")) {
+      closeLightbox();
+    }
+  });
 
+  // 7. FAQ ACCORDION
+  const faqItems = document.querySelectorAll(".faq-item");
+  faqItems.forEach(item => {
+    const headerBtn = item.querySelector(".faq-header");
+    if (!headerBtn) return;
 
+    headerBtn.addEventListener("click", () => {
+      const isOpen = item.classList.contains("active");
+      faqItems.forEach(other => { if (other !== item) other.classList.remove("active"); });
+      item.classList.toggle("active", !isOpen);
+    });
+  });
 
+  // 8. SMOOTH SCROLL
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener("click", function (e) {
+      const targetId = this.getAttribute("href");
+      if (targetId === "#" || targetId === "#top") {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      const targetElem = document.querySelector(targetId);
+      if (targetElem) {
+        e.preventDefault();
+        const offsetPos = targetElem.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: offsetPos, behavior: "smooth" });
+      }
+    });
+  });
 
+  // 9. INFINITE MASTER SLIDERS
+  document.querySelectorAll(".slider-wrapper").forEach(slider => {
+    const container = slider.querySelector(".slider-container");
+    const prevBtn = slider.querySelector(".slider-arrow.prev");
+    const nextBtn = slider.querySelector(".slider-arrow.next");
+    const dotsContainer = slider.querySelector(".slider-dots-container");
+    const dotsWrapper = slider.querySelector(".dots-wrapper");
+    
+    // Skip dot logic if they don't exist
+    if (!container || !prevBtn || !nextBtn) return;
 
+    let images = Array.from(container.querySelectorAll("img"));
+    if (images.length === 0) return;
 
-});
+    // Клонирование для бесконечности
+    const firstClone = images[0].cloneNode(true);
+    const lastClone = images[images.length - 1].cloneNode(true);
+    container.appendChild(firstClone);
+    container.insertBefore(lastClone, images[0]);
 
+    images = container.querySelectorAll("img");
+    let currentIndex = 1;
+    
+    function updateLayout() {
+      container.scrollTo({ left: currentIndex * container.clientWidth, behavior: "instant" });
+    }
+    updateLayout();
 
+    // Render dots (removed)
+    // Removed dot rendering and updating logic
+    
+    function smoothScroll(element, target, duration) {
+        const start = element.scrollLeft;
+        const change = target - start;
+        const startTime = performance.now();
 
+        function animate(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const ease = 1 - Math.pow(1 - progress, 3);
+            element.scrollLeft = start + change * ease;
+            if (progress < 1) requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    }
 
+    function move(dir) {
+      currentIndex += dir;
+      const target = currentIndex * container.clientWidth;
+      smoothScroll(container, target, 350);
+    }
 
+    container.addEventListener('scroll', () => {
+        const scrollLeft = container.scrollLeft;
+        const width = container.clientWidth;
+        
+        // Добавляем небольшой допуск (10px) для корректного срабатывания на краях
+        if (scrollLeft <= 5) {
+            currentIndex = images.length - 2;
+            container.scrollLeft = currentIndex * width;
+        } else if (scrollLeft >= (container.scrollWidth - width - 5)) {
+            currentIndex = 1;
+            container.scrollLeft = currentIndex * width;
+        } else {
+            currentIndex = Math.round(scrollLeft / width);
+        }
+    }, {passive: true});
 
+    prevBtn.addEventListener("click", (e) => { e.preventDefault(); move(-1); });
+    nextBtn.addEventListener("click", (e) => { e.preventDefault(); move(1); });
+    
+    images.forEach(img => {
+      img.addEventListener("click", () => openLightbox(img.src, img.alt));
+    });
+  });
 
+  // 10. PORTFOLIO ITEM TRANSITION STYLES
+  portfolioItems.forEach(item => {
+    item.style.transition = "opacity 0.35s ease, transform 0.35s ease";
+  });
+
+  // 11. LOAD MORE PORTFOLIO
+  const loadMoreBtn = document.getElementById("load-more-portfolio");
+  let allPortfolioItems = Array.from(document.querySelectorAll(".portfolio-item"));
+  let visibleCount = 8;
+  
+  // Set initial visibility via JS to ensure control
+  allPortfolioItems.forEach((item, index) => {
+      if (index >= visibleCount) item.style.display = "none";
+      else item.style.display = "block";
+  });
+
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener("click", () => {
+        let itemsToShow = 16;
+        let showed = 0;
+        allPortfolioItems.forEach((item) => {
+            if (item.style.display === "none" && showed < itemsToShow) {
+                item.style.display = "block";
+                item.style.opacity = "1";
+                showed++;
+            }
+        });
+        
+        // Check if any items remain hidden
+        const remaining = allPortfolioItems.filter(item => item.style.display === "none");
+        if (remaining.length === 0) {
+            loadMoreBtn.style.display = "none";
+            const fader = document.querySelector(".portfolio-grid-fader");
+            if (fader) fader.classList.remove("portfolio-grid-fader");
+        }
+    });
+  }
+
+})();
