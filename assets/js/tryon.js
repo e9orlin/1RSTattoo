@@ -412,32 +412,66 @@
       if (!sketches.length)   { alert("Добавьте хотя бы один эскиз."); return; }
 
       var bodyEl = new Image();
-      bodyEl.crossOrigin = "anonymous";
       bodyEl.onload = function () {
-        var ow = bodyEl.naturalWidth  || 1200;
-        var oh = bodyEl.naturalHeight || 900;
+        var ow = bodyEl.naturalWidth;
+        var oh = bodyEl.naturalHeight;
         var canvas = document.createElement("canvas");
         canvas.width = ow; canvas.height = oh;
         var ctx = canvas.getContext("2d");
         ctx.drawImage(bodyEl, 0, 0, ow, oh);
 
+        var bR = bodyBg.getBoundingClientRect();
         var cR = canvasContainer.getBoundingClientRect();
-        var kx = ow / cR.width, ky = oh / cR.height;
+
+        // Используем boundingClientRect изображения тела
+        var bR = bodyBg.getBoundingClientRect();
+        
+        // Вычисляем реальную область отрисовки изображения (учитывая object-fit: contain)
+        var imgAspect = bodyEl.naturalWidth / bodyEl.naturalHeight;
+        var contAspect = bR.width / bR.height;
+        var drawW, drawH;
+        if (imgAspect > contAspect) {
+            drawW = bR.width;
+            drawH = bR.width / imgAspect;
+        } else {
+            drawH = bR.height;
+            drawW = bR.height * imgAspect;
+        }
+        
+        // Коэффициенты перевода пикселей экрана в пиксели файла
+        var kx = bodyEl.naturalWidth / drawW;
+        var ky = bodyEl.naturalHeight / drawH;
+        
+        // Смещение изображения внутри контейнера
+        var offsetX = (bR.width - drawW) / 2;
+        var offsetY = (bR.height - drawH) / 2;
 
         var pending = sketches.length;
         sketches.forEach(function (sk) {
           var skEl = new Image();
-          skEl.crossOrigin = "anonymous";
           skEl.onload = function () {
-            var sW  = sk.logW * kx, sH = sk.logH * ky;
-            var sCx = (sk.x + sk.logW / 2) * kx;
-            var sCy = (sk.y + sk.logH / 2) * ky;
+            // Размеры на холсте
+            var visualW = Math.abs(sk.logW * sk.scaleX);
+            var visualH = Math.abs(sk.logH * sk.scaleY);
+            var sW = visualW * kx;
+            var sH = visualH * ky;
+
+            // Координаты центра (с учетом смещения внутри контейнера)
+            var rect = sk.tattooEl.getBoundingClientRect();
+            var sCx = ((rect.left - bR.left - offsetX) + visualW / 2) * kx;
+            var sCy = ((rect.top - bR.top - offsetY) + visualH / 2) * ky;
+
             ctx.save();
             ctx.translate(sCx, sCy);
             ctx.rotate(sk.rotation * Math.PI / 180);
-            ctx.scale(sk.scaleX, sk.scaleY);
+            
+            // Отражение
+            if (sk.scaleX < 0) ctx.scale(-1, 1);
+            if (sk.scaleY < 0) ctx.scale(1, -1);
+            
             ctx.globalAlpha = sk.opacity;
             ctx.globalCompositeOperation = "multiply";
+            
             ctx.drawImage(skEl, -sW / 2, -sH / 2, sW, sH);
             ctx.restore();
             pending--;
@@ -448,9 +482,11 @@
               document.body.appendChild(a); a.click(); document.body.removeChild(a);
             }
           };
+          skEl.onerror = function() { console.error("Ошибка эскиза:", sk.src); };
           skEl.src = sk.src;
         });
       };
+      bodyEl.onerror = function() { console.error("Ошибка фото тела:", bodySrc); };
       bodyEl.src = bodySrc;
     });
   }
